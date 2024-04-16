@@ -68,7 +68,7 @@ class LoginController extends Controller
         $loginData = $request->validate([
             'username' => 'required',
             'password' => 'required'
-        ]);
+        ]); 
 
         if (Auth::attempt($loginData)) {
             $token = Auth::user()->createToken('authToken')->plainTextToken;

@@ -67,13 +67,13 @@ class _AddProductPageState extends State<AddProductPage> {
     try {
       final response = await http.post(
         Uri.parse(
-            'http://10.0.2.2:8000/api/create-barang'), // Ganti URL_API_STORE dengan URL API Anda
+            'http://10.0.2.2:8000/api/create-produk'), // Ganti URL_API_STORE dengan URL API Anda
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode(<String, dynamic>{
-          'nama_barang': name,
+          'nama_produk': name,
           'harga': price,
           'gambar': base64Image,
           'deskripsi': description,

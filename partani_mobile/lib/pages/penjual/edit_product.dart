@@ -1,10 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class EditProductPage extends StatefulWidget {
   EditProductPage(int id);
@@ -34,104 +30,6 @@ class _EditProductPageState extends State<EditProductPage> {
         print('No image selected.');
       }
     });
-  }
-
-  Future<void> _addProduct(String token) async {
-    String name = _nameController.text.trim();
-    String price = _priceController.text.trim();
-    String description = _descriptionController.text.trim();
-    String satuan = _satuanController.text.trim();
-    String minOrder = _minOrderController.text.trim();
-    String stock = _stockController.text.trim();
-    String base64Image = '';
-
-    if (_image == null) {
-      // Set default image value if user hasn't selected any image
-      // You can provide your own default image path or use asset images
-      base64Image = 'default_image_path';
-    } else {
-      // Encode the image file to base64
-      List<int> imageBytes = await _image!.readAsBytes();
-      base64Image = base64Encode(imageBytes);
-    }
-
-    if (name.isEmpty ||
-        price.isEmpty ||
-        description.isEmpty ||
-        satuan.isEmpty ||
-        minOrder.isEmpty ||
-        stock.isEmpty) {
-      _showErrorDialog("Semua kolom harus diisi");
-      return;
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse(
-            'http://10.0.2.2:8000/api/create-barang'), // Ganti URL_API_STORE dengan URL API Anda
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(<String, dynamic>{
-          'nama_barang': name,
-          'harga': price,
-          'gambar': base64Image,
-          'deskripsi': description,
-          'satuan': satuan,
-          'minimal_pemesanan': minOrder,
-          'stok': stock,
-        }),
-      );
-
-      if (response.statusCode == 201) {
-        _showSuccessDialog();
-      } else {
-        _showErrorDialog("Gagal menambahkan produk. Silakan coba lagi.");
-      }
-    } catch (error) {
-      _showErrorDialog("Terjadi kesalahan: $error");
-    }
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Error"),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Sukses"),
-          content: Text("Produk berhasil ditambahkan"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -237,13 +135,7 @@ class _EditProductPageState extends State<EditProductPage> {
             SizedBox(height: 20.0),
             ElevatedButton(
               onPressed: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                String? token = prefs.getString('token');
-                if (token != null) {
-                  _addProduct(token);
-                } else {
-                  // Token belum tersedia, mungkin perlu proses autentikasi
-                }
+                // Tambahkan logika untuk menyimpan perubahan produk
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF64AA54),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:partani_mobile/pages/pembeli/keranjang_page.dart';
 import 'package:partani_mobile/user_login/login_admin.dart';
-import 'package:partani_mobile/pages/product_detail.dart'; // Import ProductDetailPage
+import 'package:partani_mobile/pages/pembeli/product_detail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PembeliPage extends StatefulWidget {
   @override
@@ -12,32 +13,58 @@ class PembeliPage extends StatefulWidget {
 
 class _PembeliPageState extends State<PembeliPage> {
   List<dynamic> products = [];
-  TextEditingController searchController =
-      TextEditingController(); // Define TextEditingController
+  TextEditingController searchController = TextEditingController();
+  late String token;
 
-  // Future<void> fetchData() async {
-  //   final response =
-  //       await http.get(Uri.parse('http://192.168.158.141:3001/api/readdataproduk'));
-
-  //   if (response.statusCode == 200) {
-  //     setState(() {
-  //       products = json.decode(response.body);
-  //     });
-  //   } else {
-  //     throw Exception('Failed to load data');
-  //   }
-  // }
+  Future<void> fetchProducts() async {
+    final response =
+        await http.get(Uri.parse('http://10.0.2.2:8000/api/produk/all'));
+    if (response.statusCode == 200) {
+      setState(() {
+        products = json.decode(response.body)['produk'];
+      });
+    } else {
+      throw Exception('Failed to load products');
+    }
+  }
 
   Future<void> logout() async {
-    // Hapus informasi login dari SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('role');
-
-    // Arahkan pengguna kembali ke halaman login
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => LoginPage()),
     );
+  }
+
+  Future<void> tambahProdukKeKeranjang(int idProduk, int jumlah) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token') ?? '';
+    String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
+    Map<String, dynamic> body = {
+      'id_produk': idProduk,
+      'jumlah': jumlah,
+    };
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: headers,
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 201) {
+        print('Produk berhasil ditambahkan ke keranjang.');
+      } else {
+        print('Gagal menambahkan produk ke keranjang.');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   Widget menuItem({required String label, required Color color}) {
@@ -58,7 +85,7 @@ class _PembeliPageState extends State<PembeliPage> {
   @override
   void initState() {
     super.initState();
-    // fetchData();
+    fetchProducts();
   }
 
   @override
@@ -74,7 +101,7 @@ class _PembeliPageState extends State<PembeliPage> {
                 bottomRight: Radius.circular(16),
               ),
             ),
-            padding: EdgeInsets.fromLTRB(36, 20, 36, 36), // Adjusted padding
+            padding: EdgeInsets.fromLTRB(36, 20, 36, 36),
             margin: EdgeInsets.only(bottom: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +121,7 @@ class _PembeliPageState extends State<PembeliPage> {
                       icon: Icon(Icons.logout),
                       color: Colors.white,
                       onPressed: () {
-                        logout(); // Panggil fungsi logout saat tombol logout ditekan
+                        logout();
                       },
                     ),
                   ],
@@ -139,8 +166,7 @@ class _PembeliPageState extends State<PembeliPage> {
               itemCount: products.length,
               itemBuilder: (BuildContext context, int index) {
                 return Padding(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 6.0, vertical: 2.0), // Adjusted padding
+                  padding: EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
                   child: GestureDetector(
                     onTap: () {
                       Navigator.push(
@@ -161,15 +187,13 @@ class _PembeliPageState extends State<PembeliPage> {
                               Expanded(
                                 child: Center(
                                   child: Image.asset(
-                                    'assets/images/image.jpeg', // Ganti dengan path gambar Anda
-                                    fit: BoxFit
-                                        .cover, // Sesuaikan fit sesuai kebutuhan Anda
+                                    'assets/images/image.jpeg',
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 15), // Tambahkan padding ke kiri
+                                padding: const EdgeInsets.only(left: 15),
                                 child: Text(
                                   products[index]['nama_produk'] ?? '',
                                   style: TextStyle(fontWeight: FontWeight.bold),
@@ -178,7 +202,7 @@ class _PembeliPageState extends State<PembeliPage> {
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: Text(
-                                  '\Rp.${products[index]['harga_produk'] ?? '0'}',
+                                  '\Rp.${products[index]['harga'] ?? '0'}',
                                   style: TextStyle(
                                     color: Colors.black.withOpacity(0.6),
                                   ),
@@ -187,12 +211,20 @@ class _PembeliPageState extends State<PembeliPage> {
                             ],
                           ),
                           Positioned(
-                            bottom: 8, // Tambahkan padding dari bawah
-                            right: 8, // Tambahkan padding dari kanan
-                            child: Icon(
-                              Icons.add_circle,
-                              color: Colors.green,
-                              size: 24,
+                            bottom: 8,
+                            right: 8,
+                            child: IconButton(
+                              icon: Icon(
+                                Icons.add_circle,
+                                color: Colors.green,
+                                size: 24,
+                              ),
+                              onPressed: () {
+                                tambahProdukKeKeranjang(
+                                  products[index]['id_produk'],
+                                  products[index]['minimal_pemesanan'],
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -207,35 +239,36 @@ class _PembeliPageState extends State<PembeliPage> {
       ),
       bottomNavigationBar: BottomAppBar(
         child: Container(
-          // Ubah latar belakang menjadi putih
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               IconButton(
                 icon: Icon(
                   Icons.home,
-                  color: Color(0xFF64AA54), // Ubah warna ikon menjadi #64AA54
+                  color: Color(0xFF64AA54),
                 ),
-                iconSize:
-                    30, // Ubah ukuran ikon menjadi lebih besar (misalnya 30)
+                iconSize: 30,
                 onPressed: () {},
               ),
               IconButton(
                 icon: Icon(
                   Icons.shopping_cart,
-                  color: Color(0xFF64AA54), // Ubah warna ikon menjadi #64AA54
+                  color: Color(0xFF64AA54),
                 ),
-                iconSize:
-                    30, // Ubah ukuran ikon menjadi lebih besar (misalnya 30)
-                onPressed: () {},
+                iconSize: 30,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => KeranjangPage()),
+                  );
+                },
               ),
               IconButton(
                 icon: Icon(
                   Icons.account_circle,
-                  color: Color(0xFF64AA54), // Ubah warna ikon menjadi #64AA54
+                  color: Color(0xFF64AA54),
                 ),
-                iconSize:
-                    30, // Ubah ukuran ikon menjadi lebih besar (misalnya 30)
+                iconSize: 30,
                 onPressed: () {},
               ),
             ],

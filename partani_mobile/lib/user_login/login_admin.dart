@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../pages/pembeli_page.dart';
+import '../pages/pembeli/pembeli_page.dart';
 import '../pages/penjual/penjual_page.dart';
-import '../pages/role_page.dart';
+import '../pages/role_page/role_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -14,6 +14,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController _usernameController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   Future<void> loginUser() async {
     String username = _usernameController.text.trim();
@@ -129,6 +130,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               child: TextField(
                 controller: _passwordController,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: InputBorder.none,
@@ -136,8 +138,19 @@ class _LoginPageState extends State<LoginPage> {
                     horizontal: 16.0,
                     vertical: 12.0,
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
               ),
             ),
             SizedBox(height: 24.0),

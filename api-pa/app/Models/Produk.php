@@ -6,17 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 
-class Barang extends Model
+class Produk extends Model
 {
     use HasFactory;
 
-    protected $table = 'barang';
+    protected $table = 'produk';
 
-    protected $primaryKey = 'id_barang';
+    protected $primaryKey = 'id_produk';
+   
 
     protected $fillable = [
         'id_pembuat',
-        'nama_barang',
+        'nama_produk',
         'harga',
         'gambar',
         'deskripsi',

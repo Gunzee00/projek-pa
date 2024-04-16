@@ -2,9 +2,12 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
- 
+use App\Http\Controllers\PesananController;
+use App\Http\Controllers\KeranjangController;
+use App\Http\Controllers\ProdukController;
+
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BarangController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -23,18 +26,43 @@ Route::post('user/register', [RegisterController::class, 'registerApi']);
 // Route::middleware('auth:sanctum')->get('/user/profile', function (Request $request) {
 //     return $request->user();
 // });
+//
 
-// Route::get('/barang', [BarangController::class, 'read']);
-
+Route::get('/produk/all', [ProdukController::class, 'showAll']);
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    // Rute untuk mengambil profil pengguna
     Route::get('/user/profile', [LoginController::class, 'index']);
-    Route::post('/logout', [LoginController::class, 'logout']);
-    Route::get('/barang', [BarangController::class, 'index']);
-    //menampilkan semua data
-    Route::get('/barang-pembeli', [BarangController::class, 'indexpembeli']);
-    Route::post('/create-barang', [BarangController::class, 'store']);
-    Route::delete('/delete-barang/{id}', [BarangController::class, 'delete']);
-    Route::put('/update-barang/{id}', [BarangController::class, 'update']);
+
+    // Rute untuk mengedit profil pengguna
+    Route::put('/edit-profile', [UserController::class, 'editProfile']);
+   
+    //-------------------------------Produk-----------------------------//
+    // Route::post('/logout', [LoginController::class, 'logout']);
+    //show produk berdasarkan pembuat
+    Route::get('/produk', [ProdukController::class, 'index']);
+    //create produk
+     Route::post('/create-produk', [ProdukController::class, 'store']);
+     //hapus produk
+    Route::delete('/delete-produk/{id}', [ProdukController::class, 'delete']);
+    //update produk
+    Route::put('/update-produk/{id}', [ProdukController::class, 'update']);
+
+
+    //-------------------------------Keranjang-----------------------------//
+    //view keranjang
+    Route::get('/keranjang', [KeranjangController::class, 'index']);
+    //tambah ke keranjang
+    Route::post('/keranjang/tambah-keranjang', [KeranjangController::class, 'tambahKeranjang']);
+    //hapus isi keranjang
+    Route::delete('/keranjang/hapus-keranjang', [KeranjangController::class, 'hapusKeranjang']);
+    
+
+    //-------------------------------Pesanan-----------------------------//
+     //pesanan
+     Route::get('/pesanan', [PesananController::class, 'index']);
+     //membuat pesanan
+     Route::post('/pesanan/buat-pesanan', [PesananController::class, 'buatPesananDariKeranjang']);
+
 });

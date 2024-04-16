@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:partani_mobile/pages/penjual/add_product.dart';
+import 'package:partani_mobile/pages/penjual/edit_product.dart'; // Import EditProductPage
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageProductPage extends StatefulWidget {
@@ -10,27 +11,27 @@ class ManageProductPage extends StatefulWidget {
 }
 
 class _ManageProductPageState extends State<ManageProductPage> {
-  List<dynamic> _barangs = [];
+  List<dynamic> _produks = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchBarangs();
+    _fetchProduks();
   }
 
-  Future<void> _fetchBarangs() async {
+  Future<void> _fetchProduks() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token != null) {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/barang'),
+        Uri.parse('http://10.0.2.2:8000/api/produk'),
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
       if (response.statusCode == 200) {
         setState(() {
-          _barangs = json.decode(response.body)['barang'];
+          _produks = json.decode(response.body)['produk'];
         });
       } else {
         throw Exception('Failed to load products');
@@ -40,24 +41,81 @@ class _ManageProductPageState extends State<ManageProductPage> {
     }
   }
 
+  Future<void> _deleteProduct(int id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    if (token != null) {
+      final response = await http.delete(
+        Uri.parse('http://10.0.2.2:8000/api/delete-produk/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        // Product deleted successfully, perform any necessary actions (e.g., update UI)
+        // For example, you can fetch updated list of products
+        _fetchProduks();
+      } else {
+        // Handle error, if any
+        print('Failed to delete product: ${response.body}');
+      }
+    } else {
+      // Token not available, perhaps need authentication process
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {  
     return Scaffold(
       appBar: AppBar(
         title: Text('Manage Products'),
       ),
-      body: _barangs.isEmpty
+      body: _produks.isEmpty
           ? Center(
               child: Text('No products available'),
             )
           : ListView.builder(
-              itemCount: _barangs.length,
+              itemCount: _produks.length,
               itemBuilder: (context, index) {
-                final barang = _barangs[index];
-                return ListTile(
-                  title: Text(barang['nama_barang']),
-                  subtitle: Text(barang['harga'].toString()),
-                  // Add more details as needed
+                final produk = _produks[index];
+                return Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: Card(
+                    elevation: 2,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: ListTile(
+                      title: Text(produk['nama_produk']),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                              'Harga: Rp ${produk['harga']} / ${produk['satuan']}'),
+                          Text('Stok: ${produk['stok']}'),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            onPressed: () {
+                              _navigateToEditProductPage(
+                                  context, produk['id_produk']);
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              _deleteProduct(produk['id_produk']);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
@@ -74,6 +132,13 @@ class _ManageProductPageState extends State<ManageProductPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddProductPage()),
+    );
+  }
+
+  void _navigateToEditProductPage(BuildContext context, int productId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditProductPage(productId)),
     );
   }
 }

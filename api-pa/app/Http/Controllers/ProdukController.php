@@ -2,44 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Barang;
+use App\Models\Produk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator; 
 
-class BarangController extends Controller
+class ProdukController extends Controller
 {
     //MENAMPILKAN SAAT LOGIN
         public function index()
         {
             $userId = auth()->user()->id;
-            $barangs = Barang::where('id_pembuat', $userId)->get();
-            return response()->json(['barang' => $barangs]);
+            $produks = Produk::where('id_pembuat', $userId)->get();
+            return response()->json(['produk' => $produks]);
         }
     
     //menampilkan semua barang 
-    public function indexpembeli()
-{
-    $barangs = Barang::all();
-    return response()->json(['barang' => $barangs]);
-}
-
-
-
-    // public function index()
-    // {
-    //     $userId = auth()->user()->id;
-    //     $barangs = Barang::where('id_pembuat', $userId)->get();
-    //     return response()->json(['barang' => $barangs]);
-    // }
+    public function showAll()
+    {
+        // Mengambil semua data barang dari database
+        $produks = Produk::all();
+        
+        // Memberikan respons dalam bentuk JSON dengan semua data barang
+        return response()->json(['produk' => $produks], 200);
+    }
     
-
 
     public function store(Request $request)
     {
         $userId = auth()->user()->id;
         $validator = Validator::make($request->all(), [
-           'nama_barang' => 'required',
+            'nama_produk' => 'required',
             'harga' => 'required',
             'gambar' => 'required',
             'deskripsi' => 'required',
@@ -47,31 +40,37 @@ class BarangController extends Controller
             'minimal_pemesanan' => 'required|numeric',
             'stok' => 'required|numeric',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
-
+    
         $formData = $request->all();
         $formData['id_pembuat'] = $userId;
-        $form = Barang::create($formData);
-
+    
+        // Mengecek apakah jumlah yang diminta memenuhi persyaratan minimal pemesanan
+        if ($formData['minimal_pemesanan'] > 0 && $formData['minimal_pemesanan'] > $formData['stok']) {
+            return response()->json(['message' => 'Jumlah minimal pemesanan tidak boleh melebihi stok yang tersedia.'], 400);
+        }
+    
+        $form = Produk::create($formData);
+    
         $this->response['success'] = true;
         $this->response['message'] = 'Form created successfully';
         $this->response['data'] = $form;
-
+    
         return response()->json($this->response, 201);
     }
     
     public function delete($id)
 {
-    $barang = Barang::find($id);
+    $produk = Produk::find($id);
 
-    if (!$barang) {
+    if (!$produk) {
         return response()->json(['message' => 'Produk not found'], 404);
     }
 
-    $barang->delete();
+    $produk->delete();
 
     return response()->json(['message' => 'Produk deleted successfully'], 200);
 }
@@ -81,14 +80,14 @@ class BarangController extends Controller
 public function update(Request $request, $id)
 {
     $userId = auth()->user()->id;
-    $barang = Barang::find($id);
+    $produk = Produk::find($id);
 
-    if (!$barang) {
+    if (!$produk) {
         return response()->json(['message' => 'Produk not found'], 404);
     }
 
     $validator = Validator::make($request->all(), [
-        'nama_barang' => 'required',
+        'nama_produk' => 'required',
         'harga' => 'required',
         'gambar' => 'required',
         'deskripsi' => 'required',
@@ -104,9 +103,9 @@ public function update(Request $request, $id)
     $formData = $request->all();
     $formData['id_pembuat'] = $userId;
 
-    $barang->update($formData);
+    $produk->update($formData);
 
-    return response()->json(['message' => 'Produk updated successfully', 'data' => $barang], 200);
+    return response()->json(['message' => 'Produk updated successfully', 'data' => $produk], 200);
 }
 
 
@@ -134,23 +133,23 @@ public function update(Request $request, $id)
     //     }
 
     //     // Membuat barang baru
-    //     $barang = new Barang();
-    //     $barang->nama_barang = $request->nama_barang;
-    //     $barang->harga = $request->harga;
-    //     $barang->gambar = $request->gambar;
-    //     $barang->deskripsi = $request->deskripsi;
-    //     $barang->satuan = $request->satuan;
-    //     $barang->minimal_pemesanan = $request->minimal_pemesanan;
-    //     $barang->stok = $request->stok;
+    //     $produk = new Barang();
+    //     $produk->nama_barang = $request->nama_barang;
+    //     $produk->harga = $request->harga;
+    //     $produk->gambar = $request->gambar;
+    //     $produk->deskripsi = $request->deskripsi;
+    //     $produk->satuan = $request->satuan;
+    //     $produk->minimal_pemesanan = $request->minimal_pemesanan;
+    //     $produk->stok = $request->stok;
 
     //     // Set id_pembuat dari pembeli yang sedang login
-    //     $barang->id_pembuat = $userId; // Mengambil ID pembeli yang sedang login
+    //     $produk->id_pembuat = $userId; // Mengambil ID pembeli yang sedang login
 
     //     // Simpan barang ke database
-    //     $barang->save();
+    //     $produk->save();
 
     //     // Memberi respons bahwa barang berhasil dibuat
-    //     return response()->json(['message' => 'Barang berhasil dibuat', 'barang' => $barang], 201);
+    //     return response()->json(['message' => 'Barang berhasil dibuat', 'produk' => $produk], 201);
     // }
 
      
