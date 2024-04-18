@@ -27,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/user/login'),
+        Uri.parse('https://partani.cloud/api/user/login'),
         body: jsonEncode({'username': username, 'password': password}),
         headers: {'Content-Type': 'application/json'},
       );

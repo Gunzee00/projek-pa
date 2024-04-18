@@ -15,7 +15,7 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
   TextEditingController passwordController = TextEditingController();
 
   Future<void> registerUser() async {
-    String url = 'http://10.0.2.2:8000/api/user/register';
+    String url = 'https://partani.cloud/api/user/register';
 
     if (usernameController.text.isEmpty ||
         namaController.text.isEmpty ||

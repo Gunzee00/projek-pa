@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:partani_mobile/user_login/login_admin.dart';
 import 'manage_product.dart'; // Import halaman Manage Product
+import 'pesanan_page.dart'; // Import halaman Pesanan Page
 
 class PenjualPage extends StatefulWidget {
   @override
@@ -21,11 +22,16 @@ class _PenjualPageState extends State<PenjualPage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-      // Tambahkan penanganan untuk navigasi ke ManageProductPage saat indeks 1 diklik
       if (index == 1) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => ManageProductPage()),
+        );
+      } else if (index == 2) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PesananPage()), // Navigasi ke PesananPage
         );
       }
     });
@@ -55,6 +61,12 @@ class _PenjualPageState extends State<PenjualPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.business, color: Color(0xFF64AA54)),
             label: 'Manajemen Produk',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt,
+                color:
+                    Color(0xFF64AA54)), // Ganti ikon menjadi struk perbelanjaan
+            label: 'Pesanan',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person, color: Color(0xFF64AA54)),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:partani_mobile/pages/pembeli/keranjang_page.dart';
+import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
 import 'package:partani_mobile/user_login/login_admin.dart';
 import 'package:partani_mobile/pages/pembeli/product_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +19,7 @@ class _PembeliPageState extends State<PembeliPage> {
 
   Future<void> fetchProducts() async {
     final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/api/produk/all'));
+        await http.get(Uri.parse('https://partani.cloud/api/produk/all'));
     if (response.statusCode == 200) {
       setState(() {
         products = json.decode(response.body)['produk'];
@@ -40,10 +41,10 @@ class _PembeliPageState extends State<PembeliPage> {
   Future<void> tambahProdukKeKeranjang(int idProduk, int jumlah) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
-    String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
+    String apiUrl = 'https://partani.cloud/api/keranjang/tambah-keranjang';
     Map<String, dynamic> body = {
       'id_produk': idProduk,
-      'jumlah': jumlah,
+      'jumlah': jumlah, // Menggunakan jumlah yang diperoleh dari input pengguna
     };
     Map<String, String> headers = {
       'Authorization': 'Bearer $token',
@@ -58,12 +59,20 @@ class _PembeliPageState extends State<PembeliPage> {
       );
 
       if (response.statusCode == 201) {
+        // Produk berhasil ditambahkan ke keranjang
         print('Produk berhasil ditambahkan ke keranjang.');
+        // TODO: Tambahkan feedback visual ke pengguna (opsional)
       } else {
+        // Gagal menambahkan produk ke keranjang
         print('Gagal menambahkan produk ke keranjang.');
+        // Menampilkan pesan error dari response server
+        print('Error: ${response.body}');
+        // TODO: Tambahkan feedback visual ke pengguna (opsional)
       }
     } catch (e) {
+      // Error ketika melakukan request
       print('Error: $e');
+      // TODO: Tambahkan feedback visual ke pengguna (opsional)
     }
   }
 
@@ -220,9 +229,11 @@ class _PembeliPageState extends State<PembeliPage> {
                                 size: 24,
                               ),
                               onPressed: () {
+                                int jumlah = int.parse(
+                                    products[index]['minimal_pemesanan']);
                                 tambahProdukKeKeranjang(
                                   products[index]['id_produk'],
-                                  products[index]['minimal_pemesanan'],
+                                  jumlah,
                                 );
                               },
                             ),
@@ -260,6 +271,20 @@ class _PembeliPageState extends State<PembeliPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => KeranjangPage()),
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.receipt,
+                  color: Color(0xFF64AA54),
+                ),
+                iconSize: 30,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PesananPembeliPage()),
                   );
                 },
               ),

@@ -9,20 +9,17 @@ class CreatePesanan extends Migration
     {
         Schema::create('pesanan', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->foreignId('user_id_pembeli')->constrained('users');
+            $table->foreignId('user_id_penjual')->constrained('users');
             $table->string('status');
             $table->unsignedBigInteger('id_produk');
             $table->integer('jumlah');
             $table->string('nama_produk');
             $table->string('satuan');
             $table->decimal('harga', 10, 2);
-            $table->string('gambar');
+            $table->string('gambar')->nullable();
             $table->decimal('total_harga', 10, 2);
             $table->timestamps();
-            
-            // Foreign key constraint
-            $table->foreign('user_id')->references('id')->on('users');
-            $table->foreign('id_produk')->references('id')->on('produk');
         });
     }
 

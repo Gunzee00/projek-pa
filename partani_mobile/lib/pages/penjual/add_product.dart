@@ -67,7 +67,7 @@ class _AddProductPageState extends State<AddProductPage> {
     try {
       final response = await http.post(
         Uri.parse(
-            'http://10.0.2.2:8000/api/create-produk'), // Ganti URL_API_STORE dengan URL API Anda
+            'https://partani.cloud/api/create-produk'), // Ganti URL_API_STORE dengan URL API Anda
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
           'Authorization': 'Bearer $token',

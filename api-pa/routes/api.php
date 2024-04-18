@@ -36,8 +36,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/user/profile', [LoginController::class, 'index']);
 
     // Rute untuk mengedit profil pengguna
-    Route::put('/edit-profile', [UserController::class, 'editProfile']);
-   
+    
+    Route::put('/user/update', [LoginController::class, 'updateUser']);
+
     //-------------------------------Produk-----------------------------//
     // Route::post('/logout', [LoginController::class, 'logout']);
     //show produk berdasarkan pembuat
@@ -62,6 +63,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     //-------------------------------Pesanan-----------------------------//
      //pesanan
      Route::get('/pesanan', [PesananController::class, 'index']);
+     //menampikan pesanan pembeli
+     Route::get('/pesanan/pembeli', [PesananController::class, 'pesananPembeli']);
+     //menampikan pesanan pembeli
+     Route::get('/pesanan/penjual', [PesananController::class, 'pesananPenjual']);
      //membuat pesanan
      Route::post('/pesanan/buat-pesanan', [PesananController::class, 'buatPesananDariKeranjang']);
 

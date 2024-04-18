@@ -15,20 +15,54 @@ use Illuminate\Support\Facades\Validator;
 class PesananController extends Controller
 {
     // Fungsi untuk menampilkan pesanan pengguna
-    public function index()
+//     public function index()
+// {
+//     // Mendapatkan ID pengguna yang login menggunakan token
+//     $userId = Auth::id();
+
+//     // Mengambil pesanan yang dibuat oleh pengguna atau pesanan yang ditujukan kepada pengguna
+//     $pesanan = Pesanan::where('user_id_pembeli', $userId)
+//                     ->orWhere('user_id_penjual', $userId)
+//                     ->get();
+
+//     // Mengecek apakah pesanan ditemukan
+//     if ($pesanan->isEmpty()) {
+//         return response()->json(['message' => 'Tidak ada pesanan untuk pengguna ini.'], 404);
+//     }
+
+//     return response()->json($pesanan, 200);
+// }
+
+//menampilkan pesanan yang dibuat pembeli
+public function pesananPembeli(Request $request)
+{
+    // Jika pengguna tidak login, middleware 'auth:api' akan mengembalikan respon 401 Unauthorized
+    // Jika pengguna telah login, middleware akan menambahkan informasi pengguna ke dalam request
+    // sehingga kita dapat mengakses ID pengguna yang login dengan auth()->id()
+    $userId = auth()->id();
+
+    // Mengambil pesanan yang dimiliki oleh pengguna yang login
+    $pesananPembeli = Pesanan::select('status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga')
+        ->where('user_id_pembeli', $userId)
+        ->get();
+
+    // Mengembalikan data pesanan dalam bentuk JSON
+    return response()->json($pesananPembeli, 200);
+}
+
+//menampilkan pesanan ke penjual
+public function pesananPenjual(Request $request)
     {
-        // Mendapatkan ID pengguna yang login menggunakan token
-        $userId = Auth::id();
+        // Mendapatkan ID pengguna penjual yang login menggunakan token
+        $userId = auth()->id();
 
-        // Mengambil pesanan pengguna berdasarkan ID pengguna
-        $pesanan = Pesanan::where('user_id', $userId)->get();
+        // Mengambil pesanan yang masuk untuk penjual yang login
+        $pesananMasuk = Pesanan::select('status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga')
+            ->where('user_id_penjual', $userId)
+            ->get();
 
-        // Mengecek apakah pesanan ditemukan
-        if ($pesanan->isEmpty()) {
-            return response()->json(['message' => 'Tidak ada pesanan untuk pengguna ini.'], 404);
-        }
-
-        return response()->json($pesanan, 200);
+        // Mengembalikan data pesanan dalam bentuk JSON
+        return response()->json($pesananMasuk, 200);
     }
 
    // Fungsi untuk membuat pesanan dari keranjang
@@ -47,9 +81,13 @@ class PesananController extends Controller
 
     // Membuat pesanan dari setiap item di keranjang
     foreach ($keranjang as $item) {
+        // Mendapatkan ID pengguna penjual (pemilik produk)
+        $idPenjual = $item->produk->id_pembuat;
+
         // Membuat pesanan
         $pesanan = Pesanan::create([
-            'user_id' => $userId,
+            'user_id_pembeli' => $userId,
+            'user_id_penjual' => $idPenjual, // Menggunakan ID penjual dari produk
             'status' => 1, // Status pesanan "1" menunjukkan bahwa pesanan baru dibuat
             'id_produk' => $item->id_produk,
             'jumlah' => $item->jumlah,
@@ -70,5 +108,6 @@ class PesananController extends Controller
 
     return response()->json(['message' => 'Pesanan berhasil dibuat dari keranjang.'], 201);
 }
+
 
 }

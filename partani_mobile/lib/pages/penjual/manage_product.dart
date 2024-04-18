@@ -24,7 +24,7 @@ class _ManageProductPageState extends State<ManageProductPage> {
     String? token = prefs.getString('token');
     if (token != null) {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/produk'),
+        Uri.parse('https://partani.cloud/api/produk'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -46,7 +46,7 @@ class _ManageProductPageState extends State<ManageProductPage> {
     String? token = prefs.getString('token');
     if (token != null) {
       final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/api/delete-produk/$id'),
+        Uri.parse('https://partani.cloud/api/delete-produk/$id'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -65,10 +65,10 @@ class _ManageProductPageState extends State<ManageProductPage> {
   }
 
   @override
-  Widget build(BuildContext context) {  
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Manage Products'),
+        title: Text('Manajemen Produk'),
       ),
       body: _produks.isEmpty
           ? Center(

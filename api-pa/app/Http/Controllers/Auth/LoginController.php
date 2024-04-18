@@ -31,37 +31,21 @@ class LoginController extends Controller
      * @var string
      */
     protected $redirectTo = RouteServiceProvider::HOME;
-
+    
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
-    {
-        $this->middleware('guest')->except('logout');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('guest')->except('logout');
+    // }
 
-    public function authenticated(Request $request, $user)
-    {
-        if ($user->akses == 'admin') {
-            return redirect()->route('admin.beranda');
-        } elseif ($user->akses == 'superadmin') {
-            return redirect()->route('superadmin.beranda');
-        } elseif ($user->akses == 'polisi') {
-            return redirect()->route('polisi.beranda');
-        } elseif ($user->akses == 'pengacara') {
-            return redirect()->route('pengacara.beranda');
-        } elseif ($user->akses == 'seksi') {
-            return redirect()->route('seksi.beranda');
-        } elseif ($user->akses == 'masyarakat') {
-            return redirect()->route('masyarakat.beranda');
-        } else {
-            Auth::logout();
-            flash('Anda tidak memiliki hak akses')->error();
-            return redirect()->route('login');
-        }
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:sanctum'); // Protecting routes with Sanctum middleware
+    // }
 
     protected function loginApi(Request $request)
     {
@@ -97,4 +81,42 @@ class LoginController extends Controller
         $this->response['data'] = $user;
         return response()->json($this->response, 200);
     }
+
+    public function updateUser(Request $request)
+    {
+        try {
+            $request->validate([
+                'username' => 'required|unique:users,username,' . Auth::id(),
+                'nama_lengkap' => 'required',
+                'nomor_telepon' => 'required|unique:users,nomor_telepon,' . Auth::id(),
+                'alamat' => 'required',
+                'password' => 'required'
+            ]);
+    
+            $user = Auth::user();
+            $user->username = $request->input('username');
+            $user->nama_lengkap = $request->input('nama_lengkap');
+            $user->nomor_telepon = $request->input('nomor_telepon');
+            $user->alamat = $request->input('alamat');
+            $user->password = bcrypt($request->input('password'));
+            $user->save();
+    
+            return response()->json([
+                'message' => 'Profil sudah diubah',
+                'data' => $user
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $e->validator->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update user information',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+
 }

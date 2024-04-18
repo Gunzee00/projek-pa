@@ -16,7 +16,7 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
 
   Future<void> registerUser() async {
     String url =
-        'http://10.0.2.2:8000/api/user/register'; // Ganti URL_BACKEND dengan URL backend Anda
+        'https://partani.cloud/api/user/register'; // Ganti URL_BACKEND dengan URL backend Anda
 
     // Validasi sederhana
     if (usernameController.text.isEmpty ||
@@ -110,7 +110,7 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Registrasi'),
+        title: Text('Registrasi Penjual'),
       ),
       body: SingleChildScrollView(
         child: Padding(

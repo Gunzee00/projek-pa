@@ -30,57 +30,13 @@ if ($keranjang->isEmpty()) {
 return response()->json($keranjang, 200); 
          }
 
-        //  public function tambahKeranjang(Request $request)
-        //  {
-        //      // Validasi request
-        //      $request->validate([
-        //          'id_produk' => 'required|exists:produk,id_produk', // Menggunakan kolom yang benar, yaitu id_produk
-        //          'jumlah' => 'required|integer|min:1',
-        //      ]);
-         
-        //      // Mendapatkan data produk dari request
-        //      $produkId = $request->id_produk;
-        //      $jumlah = $request->jumlah;
-             
-        //      // Mengambil data produk dari database
-        //      $produk = Produk::findOrFail($produkId);
-        //      $hargaProduk = $produk->harga;
-        //      $namaProduk = $produk->nama_produk;
-        //      $satuan = $produk->satuan;
-        //      $gambar = $produk->gambar;
-         
-        //      // Memeriksa apakah jumlah pesanan memenuhi jumlah minimal pemesanan
-        //      if ($jumlah < $produk->minimal_pemesanan) {
-        //          return response()->json(['message' => 'Jumlah pesanan kurang dari jumlah minimal pemesanan'], 400);
-        //      }
-         
-        //      // Menghitung total harga berdasarkan harga produk dan jumlah
-        //      $totalHarga = $hargaProduk * $jumlah;
-         
-        //      // Mendapatkan ID pengguna yang login menggunakan token
-        //      $userId = Auth::id();
-         
-        //      // Menambahkan produk ke keranjang
-        //      Keranjang::create([
-        //          'user_id' => $userId,
-        //          'id_produk' => $produkId,
-        //          'jumlah' => $jumlah,
-        //          'nama_produk' => $namaProduk,
-        //          'satuan' => $satuan,
-        //          'harga' => $hargaProduk,
-        //          'gambar' => $gambar,
-        //          'total_harga' => $totalHarga,
-        //      ]);
-         
-        //      return response()->json(['message' => 'Produk berhasil ditambahkan ke keranjang.'], 201);
-        //  }
-
+ 
          //tambahkan keranjang
         public function tambahKeranjang(Request $request)
 {
     // Validasi request
     $request->validate([
-        'id_produk' => 'required|exists:produk,id_produk', // Menggunakan kolom yang benar, yaitu id_produk
+        'id_produk' => 'required|exists:produk,id_produk',  
         'jumlah' => 'required|integer|min:1',
     ]);
 
@@ -139,28 +95,29 @@ return response()->json($keranjang, 200);
 public function hapusKeranjang(Request $request)
 {
     // Validasi request
-        $request->validate([
-            'id_keranjang' => 'required|exists:keranjang,id', // Validasi berdasarkan ID keranjang
-        ]);
+    $request->validate([
+        'id' => 'required|exists:keranjang,id', // Validasi berdasarkan ID item
+    ]);
 
-    // Mendapatkan ID keranjang dari request
-    $keranjangId = $request->id_keranjang;
+    // Mendapatkan ID item dari request
+    $itemId = $request->id;
 
     // Mendapatkan ID pengguna yang login menggunakan token
     $userId = Auth::id();
 
-    // Cari keranjang untuk pengguna yang login berdasarkan ID keranjang
-    $keranjang = Keranjang::where('user_id', $userId)->where('id', $keranjangId)->first();
+    // Cari item dalam keranjang untuk pengguna yang login berdasarkan ID item
+    $item = Keranjang::where('user_id', $userId)->find($itemId);
 
-    // Jika keranjang tidak ditemukan, kirimkan respons error
-    if (!$keranjang) {
-        return response()->json(['message' => 'Keranjang tidak ditemukan.'], 404);
+    // Jika item tidak ditemukan, kirimkan respons error
+    if (!$item) {
+        return response()->json(['message' => 'Item tidak ditemukan.'], 404);
     }
 
-    // Hapus keranjang
-    $keranjang->delete();
+    // Hapus item dari keranjang
+    $item->delete();
 
     return response()->json(['message' => 'Produk berhasil dihapus dari keranjang.'], 200);
 }
+
 
 }

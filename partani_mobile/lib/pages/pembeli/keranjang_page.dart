@@ -11,13 +11,14 @@ class KeranjangPage extends StatefulWidget {
 class _KeranjangPageState extends State<KeranjangPage> {
   List<Map<String, dynamic>> keranjangData = [];
   late String token;
+  String placeholderImageUrl = 'assets/images/image.jpeg';
 
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/api/keranjang'),
+      Uri.parse('https://partani.cloud/api/keranjang'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -26,38 +27,39 @@ class _KeranjangPageState extends State<KeranjangPage> {
         keranjangData = json.decode(response.body).cast<Map<String, dynamic>>();
       });
     } else {
-      throw Exception('Failed to load data');
+      print("keranjang kosong");
+    }
+  }
+
+  Future<void> buatPesananDariKeranjang() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token') ?? '';
+
+    final response = await http.post(
+      Uri.parse('https://partani.cloud/api/pesanan/buat-pesanan'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      // Jika pembuatan pesanan berhasil, panggil kembali fungsi fetchData untuk memperbarui tampilan
+      fetchData();
+    } else {
+      throw Exception('Failed to create pesanan');
     }
   }
 
   double calculateTotal() {
     double total = 0.0;
     for (var item in keranjangData) {
-      total += double.parse(item['total_harga']);
+      if (item['total_harga'] != null) {
+        // tambahkan pengecekan agar tidak bernilai null
+        total += double.parse(item['total_harga'].toString());
+      }
     }
     return total;
-  }
-
-  Future<void> hapusKeranjang(String idKeranjang) async {
-    try {
-      final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/api/keranjang/hapus-keranjang'),
-        headers: {'Authorization': 'Bearer $token'},
-        body: {'id_keranjang': idKeranjang},
-      );
-
-      if (response.statusCode == 200) {
-        // Jika penghapusan berhasil, panggil kembali fetchData untuk memperbarui data
-        fetchData();
-      } else {
-        // Tangani kesalahan dari server
-        throw Exception('Failed to delete data: ${response.body}');
-      }
-    } catch (error) {
-      // Tangani kesalahan dari klien
-      print('Error: $error');
-      throw Exception('Failed to delete data: $error');
-    }
   }
 
   @override
@@ -74,7 +76,10 @@ class _KeranjangPageState extends State<KeranjangPage> {
       ),
       body: keranjangData.isEmpty
           ? Center(
-              child: CircularProgressIndicator(),
+              child: Text(
+                'Keranjang kosong',
+                style: TextStyle(fontSize: 18),
+              ),
             )
           : Column(
               children: [
@@ -89,7 +94,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                           child: Row(
                             children: [
                               Image.asset(
-                                'assets/images/image.jpeg',
+                                placeholderImageUrl,
                                 width: 100,
                                 height: 100,
                               ),
@@ -122,21 +127,12 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                   ],
                                 ),
                               ),
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () {
-                                  // Check if 'id_keranjang' exists and has a value before calling hapusKeranjang
-                                  if (item['id_keranjang'] != null &&
-                                      item['id_keranjang'].isNotEmpty) {
-                                    hapusKeranjang(item['id_keranjang']);
-                                  } else {
-                                    // Handle the case where 'id_keranjang' is missing or empty
-                                    print(
-                                        'Error: id_keranjang is missing or empty.');
-                                    // You can also display a user-friendly error message here
-                                  }
-                                },
-                              ),
+                              // IconButton(
+                              //   onPressed: () async {
+                              //     await hapusKeranjang(item['id'].toString());
+                              //   },
+                              //   icon: Icon(Icons.delete),
+                              // ),
                             ],
                           ),
                         ),
@@ -144,28 +140,11 @@ class _KeranjangPageState extends State<KeranjangPage> {
                     },
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Subtotal:',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Rp. ${calculateTotal()}',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                    ],
-                  ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await buatPesananDariKeranjang();
+                  },
+                  child: Text('Buat Pesanan'),
                 ),
               ],
             ),
