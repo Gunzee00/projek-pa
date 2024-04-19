@@ -24,7 +24,7 @@ class _ManageProductPageState extends State<ManageProductPage> {
     String? token = prefs.getString('token');
     if (token != null) {
       final response = await http.get(
-        Uri.parse('https://partani.cloud/api/produk'),
+        Uri.parse('http://10.0.2.2:8000/api/produk'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -46,7 +46,7 @@ class _ManageProductPageState extends State<ManageProductPage> {
     String? token = prefs.getString('token');
     if (token != null) {
       final response = await http.delete(
-        Uri.parse('https://partani.cloud/api/delete-produk/$id'),
+        Uri.parse('http://10.0.2.2:8000/api/delete-produk/$id'),
         headers: {
           'Authorization': 'Bearer $token',
         },

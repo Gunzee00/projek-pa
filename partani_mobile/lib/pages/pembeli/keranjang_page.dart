@@ -18,7 +18,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
     token = prefs.getString('token') ?? '';
 
     final response = await http.get(
-      Uri.parse('https://partani.cloud/api/keranjang'),
+      Uri.parse('http://10.0.2.2:8000/api/keranjang'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -36,7 +36,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
     token = prefs.getString('token') ?? '';
 
     final response = await http.post(
-      Uri.parse('https://partani.cloud/api/pesanan/buat-pesanan'),
+      Uri.parse('http://10.0.2.2:8000/api/pesanan/buat-pesanan'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -46,6 +46,8 @@ class _KeranjangPageState extends State<KeranjangPage> {
     if (response.statusCode == 201) {
       // Jika pembuatan pesanan berhasil, panggil kembali fungsi fetchData untuk memperbarui tampilan
       fetchData();
+      // Tampilkan dialog pesanan berhasil
+      showSuccessDialog(context);
     } else {
       throw Exception('Failed to create pesanan');
     }
@@ -66,6 +68,34 @@ class _KeranjangPageState extends State<KeranjangPage> {
   void initState() {
     super.initState();
     fetchData();
+  }
+
+  Future<void> showSuccessDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible:
+          false, // dialog is dismissible with a tap on the barrier
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Pesanan Berhasil'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('Pesanan Anda berhasil dibuat.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

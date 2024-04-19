@@ -21,6 +21,7 @@ class Produk extends Model
         'harga',
         'gambar',
         'deskripsi',
+        'lokasi_produk',
         'satuan',
         'minimal_pemesanan',
         'stok',

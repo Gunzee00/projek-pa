@@ -17,7 +17,7 @@ class _PesananPageState extends State<PesananPage> {
     token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'https://partani.cloud/api/pesanan/penjual'; // Sesuaikan dengan URL yang benar
+        'http://10.0.2.2:8000/api/pesanan/penjual'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.get(
         Uri.parse(apiUrl),

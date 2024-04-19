@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:partani_mobile/pages/pembeli/keranjang_page.dart';
 import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
+import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
 import 'package:partani_mobile/user_login/login_admin.dart';
 import 'package:partani_mobile/pages/pembeli/product_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,13 +20,13 @@ class _PembeliPageState extends State<PembeliPage> {
 
   Future<void> fetchProducts() async {
     final response =
-        await http.get(Uri.parse('https://partani.cloud/api/produk/all'));
+        await http.get(Uri.parse('http://10.0.2.2:8000/api/produk/all'));
     if (response.statusCode == 200) {
       setState(() {
         products = json.decode(response.body)['produk'];
       });
     } else {
-      throw Exception('Failed to load products');
+      print("produk kosong");
     }
   }
 
@@ -41,11 +42,13 @@ class _PembeliPageState extends State<PembeliPage> {
   Future<void> tambahProdukKeKeranjang(int idProduk, int jumlah) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
-    String apiUrl = 'https://partani.cloud/api/keranjang/tambah-keranjang';
+    String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
     Map<String, dynamic> body = {
-      'id_produk': idProduk,
-      'jumlah': jumlah, // Menggunakan jumlah yang diperoleh dari input pengguna
+      'id_produk': idProduk.toString(), // Ensure id_produk is a string
+      'jumlah': jumlah,
     };
+    print(
+        'id_produk: $idProduk'); // Tambahkan log untuk memeriksa tipe dan nilai id_produk
     Map<String, String> headers = {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
@@ -209,6 +212,30 @@ class _PembeliPageState extends State<PembeliPage> {
                                 ),
                               ),
                               Padding(
+                                padding: const EdgeInsets.only(
+                                    left: 15,
+                                    top: 8), // Added padding for location text
+                                child: Row(
+                                  // Added row to display location text and icon
+                                  children: [
+                                    Icon(
+                                      Icons.location_on,
+                                      color: const Color.fromARGB(
+                                          255, 118, 119, 119),
+                                      size: 20,
+                                    ),
+                                    SizedBox(
+                                        width: 4), // Added SizedBox for spacing
+                                    Text(
+                                      products[index]['lokasi_produk'] ??
+                                          '', // Display location of the product
+                                      style: TextStyle(
+                                          color: Colors.black.withOpacity(0.6)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: Text(
                                   '\Rp.${products[index]['harga'] ?? '0'}',
@@ -229,8 +256,10 @@ class _PembeliPageState extends State<PembeliPage> {
                                 size: 24,
                               ),
                               onPressed: () {
-                                int jumlah = int.parse(
-                                    products[index]['minimal_pemesanan']);
+                                int jumlah =
+                                    products[index]['minimal_pemesanan'];
+                                print(
+                                    'Jumlah: $jumlah'); // Add this line to check type
                                 tambahProdukKeKeranjang(
                                   products[index]['id_produk'],
                                   jumlah,
@@ -294,7 +323,12 @@ class _PembeliPageState extends State<PembeliPage> {
                   color: Color(0xFF64AA54),
                 ),
                 iconSize: 30,
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
+                  );
+                },
               ),
             ],
           ),

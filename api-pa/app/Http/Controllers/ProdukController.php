@@ -21,7 +21,7 @@ class ProdukController extends Controller
     public function showAll()
     {
         // Mengambil semua data barang dari database
-        $produks = Produk::all();
+        $produks = Produk::all(['id_produk', 'id_pembuat', 'nama_produk', 'lokasi_produk', 'harga', 'gambar', 'deskripsi', 'satuan', 'minimal_pemesanan', 'stok']);
         
         // Memberikan respons dalam bentuk JSON dengan semua data barang
         return response()->json(['produk' => $produks], 200);
@@ -37,6 +37,7 @@ class ProdukController extends Controller
             'gambar' => 'required',
             'deskripsi' => 'required',
             'satuan' => 'required',
+            'lokasi_produk' => 'required',
             'minimal_pemesanan' => 'required|numeric',
             'stok' => 'required|numeric',
         ]);
@@ -92,6 +93,7 @@ public function update(Request $request, $id)
         'gambar' => 'required',
         'deskripsi' => 'required',
         'satuan' => 'required',
+        'lokasi_produk' => 'required',
         'minimal_pemesanan' => 'required|numeric',
         'stok' => 'required|numeric',
     ]);

@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\PesananController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\ProfileController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -32,12 +33,12 @@ Route::get('/produk/all', [ProdukController::class, 'showAll']);
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
-    // Rute untuk mengambil profil pengguna
-    Route::get('/user/profile', [LoginController::class, 'index']);
+    // Rute untuk menampilkan profil pengguna
+    Route::get('/user/profile', [ProfileController::class, 'showUserInfo']);
 
     // Rute untuk mengedit profil pengguna
     
-    Route::put('/user/update', [LoginController::class, 'updateUser']);
+    Route::put('/user/update', [ProfileController::class, 'updateUser']);
 
     //-------------------------------Produk-----------------------------//
     // Route::post('/logout', [LoginController::class, 'logout']);
@@ -69,5 +70,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
      Route::get('/pesanan/penjual', [PesananController::class, 'pesananPenjual']);
      //membuat pesanan
      Route::post('/pesanan/buat-pesanan', [PesananController::class, 'buatPesananDariKeranjang']);
+     //penjual konfirmasi pesanan
+     
 
 });

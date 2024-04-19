@@ -82,41 +82,6 @@ class LoginController extends Controller
         return response()->json($this->response, 200);
     }
 
-    public function updateUser(Request $request)
-    {
-        try {
-            $request->validate([
-                'username' => 'required|unique:users,username,' . Auth::id(),
-                'nama_lengkap' => 'required',
-                'nomor_telepon' => 'required|unique:users,nomor_telepon,' . Auth::id(),
-                'alamat' => 'required',
-                'password' => 'required'
-            ]);
-    
-            $user = Auth::user();
-            $user->username = $request->input('username');
-            $user->nama_lengkap = $request->input('nama_lengkap');
-            $user->nomor_telepon = $request->input('nomor_telepon');
-            $user->alamat = $request->input('alamat');
-            $user->password = bcrypt($request->input('password'));
-            $user->save();
-    
-            return response()->json([
-                'message' => 'Profil sudah diubah',
-                'data' => $user
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation error',
-                'errors' => $e->validator->errors()
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Failed to update user information',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-    
+   
 
 }

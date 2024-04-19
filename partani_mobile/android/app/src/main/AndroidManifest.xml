@@ -1,4 +1,8 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+
+    package="com.example.partani_mobile">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="partani_mobile"
         android:name="${applicationName}"

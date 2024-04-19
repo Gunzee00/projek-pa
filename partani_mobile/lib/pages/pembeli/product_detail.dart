@@ -1,9 +1,54 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final dynamic product;
 
   ProductDetailPage({required this.product});
+
+  Future<void> tambahProdukKeKeranjang(
+      int idProduk, int jumlah, BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token') ?? '';
+    String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
+    Map<String, dynamic> body = {
+      'id_produk': idProduk.toString(),
+      'jumlah': jumlah,
+    };
+
+    Map<String, String> headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: headers,
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 201) {
+        // Produk berhasil ditambahkan ke keranjang
+        print('Produk berhasil ditambahkan ke keranjang.');
+        // Tampilkan snackbar sebagai pemberitahuan
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Produk berhasil ditambahkan ke keranjang.'),
+            duration: Duration(seconds: 2), // Durasi snackbar
+          ),
+        );
+      } else {
+        // Gagal menambahkan produk ke keranjang
+        print('Gagal menambahkan produk ke keranjang.');
+        print('Error: ${response.body}');
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,13 +60,12 @@ class ProductDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Place the image widget here
             Container(
-              height: 300, // Set the height according to your requirement
+              height: 300,
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/images/image.jpeg'),
-                  fit: BoxFit.cover, // Adjust the fit as needed
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
@@ -32,13 +76,28 @@ class ProductDetailPage extends StatelessWidget {
                 children: [
                   SizedBox(height: 10),
                   Text(
-                    '\Rp.${product['harga_produk']}',
+                    '\Rp.${product['harga']}/${product['satuan']}',
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
                   Text(
                     product['nama_produk'],
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Lokasi: ${product['lokasi_produk']}',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Minimal Pemesanan: ${product['minimal_pemesanan']} ${product['satuan']}',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Stok: ${product['stok']}',
+                    style: TextStyle(fontSize: 16),
                   ),
                   SizedBox(height: 20),
                   Text(
@@ -66,35 +125,30 @@ class ProductDetailPage extends StatelessWidget {
             children: [
               ElevatedButton(
                 onPressed: () {
-                  // Implement your cart functionality here
+                  // Implement buy now functionality here
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Color(0xFF64AA54),
-                  backgroundColor: Colors.white, // Text color
-                  side: BorderSide(color: Color(0xFF64AA54)), // Border color
-                ),
-                child: Text('chat'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Implement your buy now functionality here
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Color(0xFF64AA54),
-                  backgroundColor: Colors.white, // Text color
-                  side: BorderSide(color: Color(0xFF64AA54)), // Border color
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Color(0xFF64AA54)),
                 ),
                 child: Text('Beli Langsung'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Implement your cart functionality here
+                  int jumlah = product['minimal_pemesanan'];
+                  tambahProdukKeKeranjang(
+                      product['id_produk'], jumlah, context);
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Color(0xFF64AA54), // Text color
+                  backgroundColor: Color(0xFF64AA54),
                 ),
-                child: Text('Keranjang'),
+                child: Text(
+                  'Keranjang',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ],
           ),

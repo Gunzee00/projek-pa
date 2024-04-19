@@ -16,7 +16,7 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
 
   Future<void> registerUser() async {
     String url =
-        'https://partani.cloud/api/user/register'; // Ganti URL_BACKEND dengan URL backend Anda
+        'http://10.0.2.2:8000/api/user/register'; // Ganti URL_BACKEND dengan URL backend Anda
 
     // Validasi sederhana
     if (usernameController.text.isEmpty ||
