@@ -5,19 +5,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final dynamic product;
+  TextEditingController searchController = TextEditingController();
+  late String token;
 
   ProductDetailPage({required this.product});
 
-  Future<void> tambahProdukKeKeranjang(
-      int idProduk, int jumlah, BuildContext context) async {
+  Future<void> tambahProdukKeKeranjang(int idProduk, int jumlah) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String token = prefs.getString('token') ?? '';
+    token = prefs.getString('token') ?? '';
     String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
     Map<String, dynamic> body = {
-      'id_produk': idProduk.toString(),
-      'jumlah': jumlah,
+      'id_produk': idProduk.toString(), // Ensure id_produk is a string
+      'jumlah': jumlah.toString(), // Ensure jumlah is a string
     };
-
+    print(
+        'id_produk: $idProduk'); // Add log to check type and value of id_produk
     Map<String, String> headers = {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
@@ -33,20 +35,18 @@ class ProductDetailPage extends StatelessWidget {
       if (response.statusCode == 201) {
         // Produk berhasil ditambahkan ke keranjang
         print('Produk berhasil ditambahkan ke keranjang.');
-        // Tampilkan snackbar sebagai pemberitahuan
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Produk berhasil ditambahkan ke keranjang.'),
-            duration: Duration(seconds: 2), // Durasi snackbar
-          ),
-        );
+        // TODO: Add visual feedback to the user (optional)
       } else {
         // Gagal menambahkan produk ke keranjang
         print('Gagal menambahkan produk ke keranjang.');
+        // Menampilkan pesan error dari response server
         print('Error: ${response.body}');
+        // TODO: Add visual feedback to the user (optional)
       }
     } catch (e) {
+      // Error ketika melakukan request
       print('Error: $e');
+      // TODO: Add visual feedback to the user (optional)
     }
   }
 
@@ -76,7 +76,7 @@ class ProductDetailPage extends StatelessWidget {
                 children: [
                   SizedBox(height: 10),
                   Text(
-                    '\Rp.${product['harga']}/${product['satuan']}',
+                    'Rp.${product['harga']}/${product['satuan']}',
                     style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 10),
@@ -137,8 +137,11 @@ class ProductDetailPage extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   int jumlah = product['minimal_pemesanan'];
+                  print('Jumlah: $jumlah'); // Add this line to check type
                   tambahProdukKeKeranjang(
-                      product['id_produk'], jumlah, context);
+                    product['id_produk'],
+                    jumlah,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF64AA54),

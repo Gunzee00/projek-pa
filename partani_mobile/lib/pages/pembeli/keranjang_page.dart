@@ -90,6 +90,8 @@ class _KeranjangPageState extends State<KeranjangPage> {
               child: Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
+                // Setelah menutup dialog, panggil fetchData() untuk memperbarui tampilan
+                fetchData();
               },
             ),
           ],

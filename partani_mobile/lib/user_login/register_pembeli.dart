@@ -62,13 +62,12 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Success'),
+              title: Text('Berhasil'),
               content: Text(responseData['message']),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.pop(context); // Back to login page
+                    Navigator.popUntil(context, ModalRoute.withName('/'));
                   },
                   child: Text('OK'),
                 ),
@@ -81,7 +80,7 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Error'),
+              title: Text('Gagal'),
               content: Text(responseData['message']),
               actions: <Widget>[
                 TextButton(

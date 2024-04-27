@@ -15,16 +15,13 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
   TextEditingController passwordController = TextEditingController();
 
   Future<void> registerUser() async {
-    String url =
-        'http://10.0.2.2:8000/api/user/register'; // Ganti URL_BACKEND dengan URL backend Anda
+    String url = 'http://10.0.2.2:8000/api/user/register';
 
-    // Validasi sederhana
     if (usernameController.text.isEmpty ||
         namaController.text.isEmpty ||
         teleponController.text.isEmpty ||
         alamatController.text.isEmpty ||
         passwordController.text.isEmpty) {
-      // Tampilkan pesan kesalahan jika ada input yang kosong
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -43,7 +40,6 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
       return;
     }
 
-    // Kirim data ke backend
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -60,10 +56,8 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
         }),
       );
 
-      // Parse respon dari backend
       final responseData = json.decode(response.body);
       if (response.statusCode == 201) {
-        // Jika registrasi berhasil, tampilkan pesan sukses
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -73,8 +67,7 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
-                    // Navigasi ke halaman login setelah registrasi berhasil
+                    Navigator.popUntil(context, ModalRoute.withName('/'));
                   },
                   child: Text('OK'),
                 ),
@@ -83,7 +76,6 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
           },
         );
       } else {
-        // Jika registrasi gagal, tampilkan pesan error dari backend
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -101,7 +93,6 @@ class _RegisterPenjualPageState extends State<RegisterPenjualPage> {
         );
       }
     } catch (error) {
-      // Tangani error jika koneksi gagal atau ada masalah lainnya
       print('Error: $error');
     }
   }

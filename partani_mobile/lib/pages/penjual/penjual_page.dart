@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
 import 'package:partani_mobile/user_login/login_admin.dart';
 import 'manage_product.dart'; // Import halaman Manage Product
 import 'pesanan_page.dart'; // Import halaman Pesanan Page
@@ -33,6 +34,12 @@ class _PenjualPageState extends State<PenjualPage> {
           MaterialPageRoute(
               builder: (context) => PesananPage()), // Navigasi ke PesananPage
         );
+      } else if (index == 3) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ProfilePage()), // Navigasi ke PesananPage
+        );
       }
     });
   }
@@ -63,9 +70,7 @@ class _PenjualPageState extends State<PenjualPage> {
             label: 'Manajemen Produk',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt,
-                color:
-                    Color(0xFF64AA54)), // Ganti ikon menjadi struk perbelanjaan
+            icon: Icon(Icons.receipt, color: Color(0xFF64AA54)),
             label: 'Pesanan',
           ),
           BottomNavigationBarItem(

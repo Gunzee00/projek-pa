@@ -19,6 +19,7 @@ class _AddProductPageState extends State<AddProductPage> {
   TextEditingController _satuanController = TextEditingController();
   TextEditingController _minOrderController = TextEditingController();
   TextEditingController _stockController = TextEditingController();
+  TextEditingController _lokasiprodukController = TextEditingController();
 
   File? _image;
 
@@ -42,6 +43,9 @@ class _AddProductPageState extends State<AddProductPage> {
     String satuan = _satuanController.text.trim();
     String minOrder = _minOrderController.text.trim();
     String stock = _stockController.text.trim();
+    String lokasiProduk =
+        _lokasiprodukController.text.trim(); // Ambil nilai lokasi produk
+
     String base64Image = '';
 
     if (_image == null) {
@@ -59,7 +63,9 @@ class _AddProductPageState extends State<AddProductPage> {
         description.isEmpty ||
         satuan.isEmpty ||
         minOrder.isEmpty ||
-        stock.isEmpty) {
+        stock.isEmpty ||
+        lokasiProduk.isEmpty) {
+      // Periksa apakah lokasi produk tidak kosong
       _showErrorDialog("Semua kolom harus diisi");
       return;
     }
@@ -80,6 +86,8 @@ class _AddProductPageState extends State<AddProductPage> {
           'satuan': satuan,
           'minimal_pemesanan': minOrder,
           'stok': stock,
+          'lokasi_produk':
+              lokasiProduk, // Sertakan lokasi produk dalam body permintaan
         }),
       );
 
@@ -165,6 +173,19 @@ class _AddProductPageState extends State<AddProductPage> {
               controller: _priceController,
               decoration: InputDecoration(
                 labelText: 'Harga',
+                prefixIcon: Icon(Icons.attach_money),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: BorderSide(color: Color(0xFF64AA54)),
+                ),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 12.0),
+            TextFormField(
+              controller: _lokasiprodukController,
+              decoration: InputDecoration(
+                labelText: 'Lokasi Produk',
                 prefixIcon: Icon(Icons.attach_money),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
