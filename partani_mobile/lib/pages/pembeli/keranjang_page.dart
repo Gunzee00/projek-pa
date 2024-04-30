@@ -149,7 +149,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      'Rp. ${item['total_harga']}',
+                                      'Rp.${item['total_harga']}',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -159,12 +159,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                   ],
                                 ),
                               ),
-                              // IconButton(
-                              //   onPressed: () async {
-                              //     await hapusKeranjang(item['id'].toString());
-                              //   },
-                              //   icon: Icon(Icons.delete),
-                              // ),
                             ],
                           ),
                         ),
@@ -172,11 +166,39 @@ class _KeranjangPageState extends State<KeranjangPage> {
                     },
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await buatPesananDariKeranjang();
-                  },
-                  child: Text('Buat Pesanan'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(30.0),
+                        child: Text(
+                          'Total: Rp. ${calculateTotal()}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(
+                            30.0), // Ubah nilai sesuai kebutuhan Anda
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await buatPesananDariKeranjang();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.green,
+                          ),
+                          child: Text('Buat Pesanan'),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

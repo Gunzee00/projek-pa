@@ -14,24 +14,7 @@ use Illuminate\Support\Facades\Validator;
 
 class PesananController extends Controller
 {
-    // Fungsi untuk menampilkan pesanan pengguna
-//     public function index()
-// {
-//     // Mendapatkan ID pengguna yang login menggunakan token
-//     $userId = Auth::id();
-
-//     // Mengambil pesanan yang dibuat oleh pengguna atau pesanan yang ditujukan kepada pengguna
-//     $pesanan = Pesanan::where('user_id_pembeli', $userId)
-//                     ->orWhere('user_id_penjual', $userId)
-//                     ->get();
-
-//     // Mengecek apakah pesanan ditemukan
-//     if ($pesanan->isEmpty()) {
-//         return response()->json(['message' => 'Tidak ada pesanan untuk pengguna ini.'], 404);
-//     }
-
-//     return response()->json($pesanan, 200);
-// }
+     
 
 //menampilkan pesanan yang dibuat pembeli
 public function pesananPembeli(Request $request)

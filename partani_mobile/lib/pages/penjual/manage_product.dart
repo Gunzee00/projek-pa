@@ -2,7 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:partani_mobile/pages/penjual/add_product.dart';
-import 'package:partani_mobile/pages/penjual/edit_product.dart'; // Import EditProductPage
+import 'package:partani_mobile/pages/penjual/edit_product.dart';
+import 'package:partani_mobile/pages/penjual/pesanan_page.dart';
+import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
+import 'package:partani_mobile/pages/penjual/penjual_page.dart'; // Import PenjualPage
+import 'package:partani_mobile/user_login/login_admin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageProductPage extends StatefulWidget {
@@ -12,6 +16,7 @@ class ManageProductPage extends StatefulWidget {
 
 class _ManageProductPageState extends State<ManageProductPage> {
   List<dynamic> _produks = [];
+  int _selectedIndex = 1; // Set index for bottom bar
 
   @override
   void initState() {
@@ -125,6 +130,32 @@ class _ManageProductPageState extends State<ManageProductPage> {
         },
         child: Icon(Icons.add),
       ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
+              color: Color(0xFF64AA54),
+            ),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.business, color: Color(0xFF64AA54)),
+            label: 'Manajemen Produk',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt, color: Color(0xFF64AA54)),
+            label: 'Pesanan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person, color: Color(0xFF64AA54)),
+            label: 'Profil',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Color(0xFF64AA54),
+        onTap: _onItemTapped,
+      ),
     );
   }
 
@@ -140,5 +171,27 @@ class _ManageProductPageState extends State<ManageProductPage> {
       context,
       MaterialPageRoute(builder: (context) => EditProductPage(productId)),
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+      if (index == 0) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PenjualPage()),
+        );
+      } else if (index == 2) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PesananPage()),
+        );
+      } else if (index == 3) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePage()),
+        );
+      }
+    });
   }
 }

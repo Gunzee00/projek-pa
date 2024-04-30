@@ -9,26 +9,22 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator; 
 class KeranjangController extends Controller
 {
-    // public function index()
-    //     {
-    //         $userId = auth()->user()->id;
-    //         $keranjang = Keranjang::where('user_id', $userId)->get();
-    //         if ($keranjang->isEmpty()) {
-    //             return response()->json(['message' => 'Isi keranjang kosong.'], 404);
-    //         }
-    //         return response()->json($keranjang, 200);       
-    //      }
+  
 
 //tampilkan isi keranjang user
-    public function index()
-        {
-            $userId = auth()->user()->id;
-$keranjang = Keranjang::where('user_id', $userId)->select( 'nama_produk','jumlah', 'satuan', 'total_harga')->get();
-if ($keranjang->isEmpty()) {
-    return response()->json(['message' => 'Isi keranjang kosong.'], 404);
+public function index()
+{
+    $userId = auth()->user()->id;
+    $keranjang = Keranjang::where('user_id', $userId)
+                    ->select('id_produk', 'nama_produk', 'jumlah', 'satuan', 'total_harga')
+                    ->get();
+
+    if ($keranjang->isEmpty()) {
+        return response()->json(['message' => 'Isi keranjang kosong.'], 404);
+    }
+
+    return response()->json($keranjang, 200);
 }
-return response()->json($keranjang, 200); 
-         }
 
  
          //tambahkan keranjang
@@ -96,27 +92,27 @@ public function hapusKeranjang(Request $request)
 {
     // Validasi request
     $request->validate([
-        'id' => 'required|exists:keranjang,id', // Validasi berdasarkan ID item
+        'id_produk' => 'required|exists:keranjang,id_produk,user_id,' . auth()->id(),
     ]);
 
-    // Mendapatkan ID item dari request
-    $itemId = $request->id;
+    // Mendapatkan ID produk yang akan dihapus dari request
+    $produkId = $request->id_produk;
 
     // Mendapatkan ID pengguna yang login menggunakan token
-    $userId = Auth::id();
+    $userId = auth()->id();
 
-    // Cari item dalam keranjang untuk pengguna yang login berdasarkan ID item
-    $item = Keranjang::where('user_id', $userId)->find($itemId);
+    // Cari item keranjang yang sesuai dengan pro   dukId dan userId
+    $itemKeranjang = Keranjang::where('user_id', $userId)
+                               ->where('id_produk', $produkId)
+                               ->first();
 
-    // Jika item tidak ditemukan, kirimkan respons error
-    if (!$item) {
-        return response()->json(['message' => 'Item tidak ditemukan.'], 404);
+    // Jika item keranjang ditemukan, hapus
+    if ($itemKeranjang) {
+        $itemKeranjang->delete();
+        return response()->json(['message' => 'Item keranjang berhasil dihapus.'], 200);
+    } else {
+        return response()->json(['message' => 'Item keranjang tidak ditemukan.'], 404);
     }
-
-    // Hapus item dari keranjang
-    $item->delete();
-
-    return response()->json(['message' => 'Produk berhasil dihapus dari keranjang.'], 200);
 }
 
 
