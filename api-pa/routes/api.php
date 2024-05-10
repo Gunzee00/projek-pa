@@ -40,6 +40,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     
     Route::put('/user/update', [ProfileController::class, 'updateUser']);
 
+    //user logout
+    Route::post('/user/logout', [LoginController::class, 'logoutApi']);
+
+
     //-------------------------------Produk-----------------------------//
     // Route::post('/logout', [LoginController::class, 'logout']);
     //show produk berdasarkan pembuat
@@ -59,7 +63,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/keranjang/tambah-keranjang', [KeranjangController::class, 'tambahKeranjang']);
     //hapus isi keranjang
     Route::delete('/keranjang/hapus-keranjang', [KeranjangController::class, 'hapusKeranjang']);
-    
+    //update isi keranjang
+    Route::put('/keranjang/update-keranjang', [KeranjangController::class, 'updateJumlahKeranjang']);
+    //detail produk di keranjang
+    Route::get('/keranjang/detail', [KeranjangController::class, 'detailKeranjang']);
+
+   
 
     //-------------------------------Pesanan-----------------------------//
      //pesanan
@@ -68,7 +77,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
      Route::get('/pesanan/pembeli', [PesananController::class, 'pesananPembeli']);
      //menampikan pesanan pembeli
      Route::get('/pesanan/penjual', [PesananController::class, 'pesananPenjual']);
-     //membuat pesanan
+     Route::post('/pesanan/buat-pesanan-langsung', [PesananController::class, 'buatPesananLangsung']);
+     //membuat pesanan dari keranjang
      Route::post('/pesanan/buat-pesanan', [PesananController::class, 'buatPesananDariKeranjang']);
      //penjual konfirmasi pesanan
      

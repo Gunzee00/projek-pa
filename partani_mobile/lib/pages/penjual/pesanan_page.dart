@@ -73,19 +73,65 @@ class _PesananPageState extends State<PesananPage> {
                 } else {
                   status = 'Pesanan Dibuat';
                 }
-                return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: ListTile(
-                    leading: Image.asset(
-                      'assets/images/image.jpeg', // Menggunakan gambar dari assets
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
+
+                // Tambahkan pembatas jika pemesan berbeda dengan pesanan sebelumnya
+                Widget separator = SizedBox(height: 10);
+                if (index > 0 &&
+                    pesanan['pembeli'] != pesananMasuk[index - 1]['pembeli']) {
+                  separator = Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Divider(
+                        color: Colors.grey,
+                        height: 10,
+                        thickness: 2,
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  );
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    separator,
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.all(10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pembeli: ${pesanan['pembeli']}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Status: $status',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          ListTile(
+                            leading: Image.asset(
+                              'assets/images/image.jpeg', // Menggunakan gambar dari assets
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(pesanan['nama_produk'] ?? ''),
+                            subtitle: Text(
+                                'Total Harga: Rp. ${pesanan['total_harga']}'),
+                          ),
+                        ],
+                      ),
                     ),
-                    title: Text(pesanan['nama_produk'] ?? ''),
-                    subtitle: Text(
-                        'Total Harga: Rp. ${pesanan['total_harga']} | Status: $status'),
-                  ),
+                  ],
                 );
               },
             ),

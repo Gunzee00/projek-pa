@@ -43,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile Pembeli'),
+        title: Text('Profil'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -74,10 +74,6 @@ class _ProfilePageState extends State<ProfilePage> {
                           value: userInfo!['alamat'],
                           maxLines: 2,
                         ),
-                        ProfileField(
-                          label: 'Password',
-                          value: '******', // Informasi password
-                        ),
                         SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -90,7 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       builder: (context) => EditProfilePage()),
                                 );
                               },
-                              child: Text('Edit Profile'),
+                              child: Text('Edit Profil'),
                             ),
                           ],
                         ),

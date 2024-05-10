@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'package:partani_mobile/pages/pembeli/keranjang_page.dart';
 import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
 import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
-import 'package:partani_mobile/user_login/login_admin.dart';
+
 import 'package:partani_mobile/pages/pembeli/product_detail.dart';
+import 'package:partani_mobile/user_login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PembeliPage extends StatefulWidget {
@@ -16,7 +17,7 @@ class PembeliPage extends StatefulWidget {
 class _PembeliPageState extends State<PembeliPage> {
   List<dynamic> products = [];
   TextEditingController searchController = TextEditingController();
-  late String token;
+  late String token = ''; // Inisialisasi token
 
   Future<void> fetchProducts() async {
     final response =
@@ -30,52 +31,120 @@ class _PembeliPageState extends State<PembeliPage> {
     }
   }
 
-  Future<void> logout() async {
+  // Fungsi untuk menginisialisasi token dari SharedPreferences
+  Future<void> initializeToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('role');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
-    );
+    setState(() {
+      token = prefs.getString('token') ?? '';
+    });
   }
 
+  // Metode logout
+  void logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token') ?? '';
+
+    if (token.isNotEmpty) {
+      // Tambahkan pengecekan token sebelum logout
+      String apiUrl = 'http://10.0.2.2:8000/api/user/logout';
+      Map<String, String> headers = {
+        'Authorization': 'Bearer $token',
+      };
+
+      try {
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: headers,
+        );
+
+        if (response.statusCode == 200) {
+          prefs.remove('token');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+        } else {
+          print('Gagal logout: ${response.body}');
+        }
+      } catch (e) {
+        print('Error: $e');
+      }
+    }
+  }
+
+  // Metode untuk menambahkan produk ke keranjang
   Future<void> tambahProdukKeKeranjang(int idProduk, int jumlah) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
-    String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
-    Map<String, dynamic> body = {
-      'id_produk': idProduk.toString(), // Ensure id_produk is a string
-      'jumlah': jumlah,
-    };
-    print(
-        'id_produk: $idProduk'); // Tambahkan log untuk memeriksa tipe dan nilai id_produk
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: json.encode(body),
+    if (token.isEmpty) {
+      // Jika token kosong, tampilkan popup untuk autentikasi
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Peringatan"),
+            content: Text("Kamu harus melakukan autentikasi dahulu."),
+            actions: <Widget>[
+              // Tombol untuk pergi ke halaman login
+              TextButton(
+                child: Text("Login"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
+              ),
+              // Tombol untuk menutup popup
+              TextButton(
+                child: Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       );
+    } else {
+      // Jika token tidak kosong, tambahkan produk ke keranjang
+      String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
+      Map<String, dynamic> body = {
+        'id_produk': idProduk.toString(), // Ensure id_produk is a string
+        'jumlah': jumlah,
+      };
+      print(
+          'id_produk: $idProduk'); // Tambahkan log untuk memeriksa tipe dan nilai id_produk
+      Map<String, String> headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
 
-      if (response.statusCode == 201) {
-        // Produk berhasil ditambahkan ke keranjang
-        print('Produk berhasil ditambahkan ke keranjang.');
-        // TODO: Tambahkan feedback visual ke pengguna (opsional)
-      } else {
-        // Gagal menambahkan produk ke keranjang
-        print('Gagal menambahkan produk ke keranjang.');
-        // Menampilkan pesan error dari response server
-        print('Error: ${response.body}');
+      try {
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: headers,
+          body: json.encode(body),
+        );
+
+        if (response.statusCode == 201) {
+          // Produk berhasil ditambahkan ke keranjang
+          print('Produk berhasil ditambahkan ke keranjang.');
+          // TODO: Tambahkan feedback visual ke pengguna (opsional)
+        } else {
+          // Gagal menambahkan produk ke keranjang
+          print('Gagal menambahkan produk ke keranjang.');
+          // Menampilkan pesan error dari response server
+          print('Error: ${response.body}');
+          // TODO: Tambahkan feedback visual ke pengguna (opsional)
+        }
+      } catch (e) {
+        // Error ketika melakukan request
+        print('Error: $e');
         // TODO: Tambahkan feedback visual ke pengguna (opsional)
       }
-    } catch (e) {
-      // Error ketika melakukan request
-      print('Error: $e');
-      // TODO: Tambahkan feedback visual ke pengguna (opsional)
     }
   }
 
@@ -98,6 +167,7 @@ class _PembeliPageState extends State<PembeliPage> {
   void initState() {
     super.initState();
     fetchProducts();
+    initializeToken(); // Panggil fungsi untuk menginisialisasi token
   }
 
   @override
@@ -129,13 +199,14 @@ class _PembeliPageState extends State<PembeliPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.logout),
-                      color: Colors.white,
-                      onPressed: () {
-                        logout();
-                      },
-                    ),
+                    if (token.isNotEmpty)
+                      IconButton(
+                        icon: Icon(Icons.logout),
+                        color: Colors.white,
+                        onPressed: () {
+                          logout(); // Panggil metode logout saat tombol logout ditekan
+                        },
+                      ),
                   ],
                 ),
                 SizedBox(height: 16),
@@ -255,15 +326,56 @@ class _PembeliPageState extends State<PembeliPage> {
                                 color: Colors.green,
                                 size: 24,
                               ),
-                              onPressed: () {
+                              onPressed: () async {
                                 int jumlah =
                                     products[index]['minimal_pemesanan'];
                                 print(
                                     'Jumlah: $jumlah'); // Add this line to check type
-                                tambahProdukKeKeranjang(
-                                  products[index]['id_produk'],
-                                  jumlah,
-                                );
+                                SharedPreferences prefs =
+                                    await SharedPreferences.getInstance();
+                                token = prefs.getString('token') ??
+                                    ''; // Inisialisasi token
+                                if (token.isEmpty) {
+                                  // Jika token kosong, tampilkan popup untuk autentikasi
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text("Peringatan"),
+                                        content: Text(
+                                            "Kamu harus melakukan autentikasi dahulu."),
+                                        actions: <Widget>[
+                                          // Tombol untuk pergi ke halaman login
+                                          TextButton(
+                                            child: Text("Login"),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                              Navigator.pushReplacement(
+                                                context,
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        LoginPage()),
+                                              );
+                                            },
+                                          ),
+                                          // Tombol untuk menutup popup
+                                          TextButton(
+                                            child: Text("Close"),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                } else {
+                                  // Jika token tidak kosong, tambahkan produk ke keranjang
+                                  tambahProdukKeKeranjang(
+                                    products[index]['id_produk'],
+                                    jumlah,
+                                  );
+                                }
                               },
                             ),
                           ),

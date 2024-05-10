@@ -60,19 +60,60 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
               itemCount: pesananPembeli.length,
               itemBuilder: (BuildContext context, int index) {
                 final pesanan = pesananPembeli[index];
-                return Card(
-                  margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: ListTile(
-                    leading: Image.asset(
-                      'assets/images/image.jpeg', // Menggunakan gambar dari assets
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
+                final penjual = pesanan[
+                    'penjual']; // Ubah sesuai dengan key nama penjual dalam respons API
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (index > 0 &&
+                        pesanan['penjual'] ==
+                            pesananPembeli[index - 1]['penjual'])
+                      SizedBox(
+                          height:
+                              5), // Jarak antara pesanan dari penjual yang sama
+                    if (index == 0 ||
+                        pesanan['penjual'] !=
+                            pesananPembeli[index - 1]['penjual'])
+                      Container(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color:
+                              Colors.grey[200], // Warna latar belakang pemisah
+                          borderRadius:
+                              BorderRadius.circular(8), // Radius field
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Penjual: $penjual',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              'Status: ${_getStatusText(pesanan['status'])}',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    Card(
+                      margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      child: ListTile(
+                        leading: Image.asset(
+                          'assets/images/image.jpeg', // Menggunakan gambar dari assets
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                        ),
+                        title: Text(pesanan['nama_produk'] ?? ''),
+                        subtitle:
+                            Text('Total Harga: Rp. ${pesanan['total_harga']}'),
+                      ),
                     ),
-                    title: Text(pesanan['nama_produk'] ?? ''),
-                    subtitle: Text(
-                        'Total Harga: Rp. ${pesanan['total_harga']} | Status: ${_getStatusText(pesanan['status'])}'),
-                  ),
+                  ],
                 );
               },
             ),

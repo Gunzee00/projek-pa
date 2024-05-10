@@ -82,6 +82,17 @@ class LoginController extends Controller
         return response()->json($this->response, 200);
     }
 
+    use AuthenticatesUsers;
+
+    public function logoutApi(Request $request)
+    {
+        $user = $request->user();
+        $user->tokens()->where('id', $user->currentAccessToken()->id)->delete();
+
+        return response()->json([
+            'message' => 'Logged out successfully',
+        ], 200);
+    }
    
 
 }

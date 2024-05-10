@@ -6,7 +6,7 @@ import 'package:partani_mobile/pages/penjual/edit_product.dart';
 import 'package:partani_mobile/pages/penjual/pesanan_page.dart';
 import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
 import 'package:partani_mobile/pages/penjual/penjual_page.dart'; // Import PenjualPage
-import 'package:partani_mobile/user_login/login_admin.dart';
+import 'package:partani_mobile/user_login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageProductPage extends StatefulWidget {

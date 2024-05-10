@@ -26,6 +26,7 @@ class Keranjang extends Model
         'harga',
         'gambar',
         'total_harga',
+        'penjual'
     ];
 
     /**

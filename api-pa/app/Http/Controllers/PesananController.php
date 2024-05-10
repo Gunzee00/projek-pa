@@ -2,95 +2,120 @@
 
 namespace App\Http\Controllers;
 
-namespace App\Http\Controllers;
 use App\Models\Keranjang;
 use App\Models\Produk;
 use App\Models\Pesanan;
 use App\Models\User;
- 
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator; 
+use Illuminate\Support\Facades\Validator;
 
 class PesananController extends Controller
 {
-     
-
-//menampilkan pesanan yang dibuat pembeli
-public function pesananPembeli(Request $request)
-{
-    // Jika pengguna tidak login, middleware 'auth:api' akan mengembalikan respon 401 Unauthorized
-    // Jika pengguna telah login, middleware akan menambahkan informasi pengguna ke dalam request
-    // sehingga kita dapat mengakses ID pengguna yang login dengan auth()->id()
-    $userId = auth()->id();
-
-    // Mengambil pesanan yang dimiliki oleh pengguna yang login
-    $pesananPembeli = Pesanan::select('status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga')
-        ->where('user_id_pembeli', $userId)
-        ->get();
-
-    // Mengembalikan data pesanan dalam bentuk JSON
-    return response()->json($pesananPembeli, 200);
-}
-
-//menampilkan pesanan ke penjual
-public function pesananPenjual(Request $request)
+    //menampilkan pesanan yang dibuat pembeli
+    public function pesananPembeli(Request $request)
     {
-        // Mendapatkan ID pengguna penjual yang login menggunakan token
         $userId = auth()->id();
 
-        // Mengambil pesanan yang masuk untuk penjual yang login
-        $pesananMasuk = Pesanan::select('status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga')
+        $pesananPembeli = Pesanan::select('status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga', 'penjual', 'pembeli')
+            ->where('user_id_pembeli', $userId)
+            ->get();
+
+        return response()->json($pesananPembeli, 200);
+    }
+
+    //menampilkan pesanan ke penjual
+    public function pesananPenjual(Request $request)
+    {
+        $userId = auth()->id();
+
+        $pesananMasuk = Pesanan::select('status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga', 'pembeli')
             ->where('user_id_penjual', $userId)
             ->get();
 
-        // Mengembalikan data pesanan dalam bentuk JSON
         return response()->json($pesananMasuk, 200);
     }
 
-   // Fungsi untuk membuat pesanan dari keranjang
-   public function buatPesananDariKeranjang(Request $request)
-{
-    // Mendapatkan ID pengguna yang login menggunakan token
-    $userId = auth()->id();
+    // Fungsi untuk membuat pesanan dari keranjang
+    public function buatPesananDariKeranjang(Request $request)
+    {
+        $userId = auth()->id();
 
-    // Mengambil semua barang dari keranjang pengguna
-    $keranjang = Keranjang::where('user_id', $userId)->get();
+        $keranjang = Keranjang::where('user_id', $userId)->get();
 
-    // Jika keranjang kosong, kembalikan pesan kesalahan
-    if ($keranjang->isEmpty()) {
-        return response()->json(['message' => 'Keranjang kosong. Tidak ada pesanan yang dibuat.'], 404);
+        if ($keranjang->isEmpty()) {
+            return response()->json(['message' => 'Keranjang kosong. Tidak ada pesanan yang dibuat.'], 404);
+        }
+
+        foreach ($keranjang as $item) {
+            $idPenjual = $item->produk->id_pembuat;
+            $penjual = User::find($idPenjual);
+            $pembeli = User::find($userId);
+
+            $pesanan = Pesanan::create([
+                'user_id_pembeli' => $userId,
+                'user_id_penjual' => $idPenjual,
+                'status' => 1,
+                'id_produk' => $item->id_produk,
+                'jumlah' => $item->jumlah,
+                'total_harga' => $item->total_harga,
+                'nama_produk' => $item->produk->nama_produk,
+                'satuan' => $item->produk->satuan,
+                'harga' => $item->produk->harga,
+                'gambar' => $item->produk->gambar,
+                'penjual' => $penjual->username, // Menggunakan username penjual
+                'pembeli' => $pembeli->username, // Menggunakan username pembeli
+            ]);
+
+            $item->produk->decrement('stok', $item->jumlah);
+
+            $item->delete();
+        }
+
+        return response()->json(['message' => 'Pesanan berhasil dibuat dari keranjang.'], 201);
     }
+      
+    public function buatPesananLangsung(Request $request)
+    {
+        $userId = auth()->id();
 
-    // Membuat pesanan dari setiap item di keranjang
-    foreach ($keranjang as $item) {
-        // Mendapatkan ID pengguna penjual (pemilik produk)
-        $idPenjual = $item->produk->id_pembuat;
-
-        // Membuat pesanan
-        $pesanan = Pesanan::create([
-            'user_id_pembeli' => $userId,
-            'user_id_penjual' => $idPenjual, // Menggunakan ID penjual dari produk
-            'status' => 1, // Status pesanan "1" menunjukkan bahwa pesanan baru dibuat
-            'id_produk' => $item->id_produk,
-            'jumlah' => $item->jumlah,
-            'total_harga' => $item->total_harga,
-            // Mengisi kolom tambahan dari tabel produk
-            'nama_produk' => $item->produk->nama_produk,
-            'satuan' => $item->produk->satuan,
-            'harga' => $item->produk->harga,
-            'gambar' => $item->produk->gambar,
+        $validator = Validator::make($request->all(), [
+            'id_produk' => 'required|exists:produk,id_produk',
         ]);
 
-        // Mengurangi stok produk berdasarkan jumlah yang dipesan
-        $item->produk->decrement('stok', $item->jumlah);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
 
-        // Menghapus item dari keranjang setelah dibuat menjadi pesanan
-        $item->delete();
+        $produk = Produk::find($request->id_produk);
+
+        if (!$produk) {
+            return response()->json(['message' => 'Produk tidak ditemukan'], 404);
+        }
+
+        $jumlahPemesanan = $produk->minimal_pemesanan;
+
+        $penjual = User::find($produk->id_pembuat);
+        $pembeli = User::find($userId);
+
+        $pesanan = Pesanan::create([
+            'user_id_pembeli' => $userId,
+            'user_id_penjual' => $produk->id_pembuat,
+            'status' => 1,
+            'id_produk' => $produk->id_produk,
+            'jumlah' => $jumlahPemesanan,
+            'total_harga' => $produk->harga * $jumlahPemesanan,
+            'nama_produk' => $produk->nama_produk,
+            'satuan' => $produk->satuan,
+            'harga' => $produk->harga,
+            'gambar' => $produk->gambar,
+            'penjual' => $penjual->username,
+            'pembeli' => $pembeli->username,
+        ]);
+
+        $produk->decrement('stok', $jumlahPemesanan);
+
+        return response()->json(['message' => 'Pesanan berhasil dibuat', 'data' => $pesanan], 201);
     }
-
-    return response()->json(['message' => 'Pesanan berhasil dibuat dari keranjang.'], 201);
-}
-
-
 }

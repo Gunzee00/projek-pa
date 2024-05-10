@@ -25,6 +25,9 @@ class Pesanan extends Model
         'harga',
         'gambar',
         'total_harga',
+        'penjual',
+        'pembeli'
+        
     ];
 
     // Relasi dengan model User untuk pengguna pembeli
