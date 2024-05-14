@@ -2,19 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:partani_mobile/pages/penjual/manage_product.dart'; // Import ManageProductPage
-import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
-import 'package:partani_mobile/pages/penjual/penjual_page.dart'; // Import PenjualPage
+import 'package:url_launcher/url_launcher.dart';
 
-class PesananPage extends StatefulWidget {
+class PesananPenjualPage extends StatefulWidget {
   @override
-  _PesananPageState createState() => _PesananPageState();
+  _PesananPenjualPageState createState() => _PesananPenjualPageState();
 }
 
-class _PesananPageState extends State<PesananPage> {
-  List<Map<String, dynamic>> pesananMasuk = [];
+class _PesananPenjualPageState extends State<PesananPenjualPage> {
+  List<Map<String, dynamic>> pesananPenjual = [];
   late String token;
-  int _selectedIndex = 2; // Set index for bottom bar
 
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -29,11 +26,61 @@ class _PesananPageState extends State<PesananPage> {
       );
       if (response.statusCode == 200) {
         setState(() {
-          pesananMasuk =
+          pesananPenjual =
               json.decode(response.body).cast<Map<String, dynamic>>();
         });
       } else {
         throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      print('Error: $e');
+      // Tambahkan penanganan kesalahan jika diperlukan
+    }
+  }
+
+  void _konfirmasiPesanan(String idPesanan) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token') ?? '';
+
+    String apiUrl =
+        'http://10.0.2.2:8000/api/pesanan/konfirmasi/$idPesanan'; // Sesuaikan dengan URL yang benar
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        fetchData(); // Ambil ulang data setelah mengkonfirmasi pesanan
+      } else {
+        throw Exception('Failed to confirm order');
+      }
+    } catch (e) {
+      print('Error: $e');
+      // Tambahkan penanganan kesalahan jika diperlukan
+    }
+  }
+
+  void _tolakPesanan(String idPesanan) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token') ?? '';
+
+    String apiUrl =
+        'http://10.0.2.2:8000/api/pesanan/tolak/$idPesanan'; // Sesuaikan dengan URL yang benar
+    try {
+      final response = await http.put(
+        Uri.parse(apiUrl),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        fetchData(); // Ambil ulang data setelah menolak pesanan
+      } else {
+        throw Exception('Failed to reject order');
       }
     } catch (e) {
       print('Error: $e');
@@ -53,136 +100,144 @@ class _PesananPageState extends State<PesananPage> {
       appBar: AppBar(
         title: Text('Pesanan Masuk'),
       ),
-      body: pesananMasuk.isEmpty
+      body: pesananPenjual.isEmpty
           ? Center(
               child: Text(
-                'Tidak ada pesanan masuk',
+                'Tidak ada pesanan',
                 style: TextStyle(fontSize: 18),
               ),
             )
           : ListView.builder(
-              itemCount: pesananMasuk.length,
+              itemCount: pesananPenjual.length,
               itemBuilder: (BuildContext context, int index) {
-                final pesanan = pesananMasuk[index];
-                // Tentukan status pesanan
-                String status;
-                if (pesanan['status'] == 1) {
-                  status = 'Pesanan Dibuat';
-                } else if (pesanan['status'] == 2) {
-                  status = 'Pesanan Diproses';
-                } else {
-                  status = 'Pesanan Dibuat';
-                }
+                final pesanan = pesananPenjual[index];
+                final String status = pesanan['status'].toString();
 
-                // Tambahkan pembatas jika pemesan berbeda dengan pesanan sebelumnya
-                Widget separator = SizedBox(height: 10);
-                if (index > 0 &&
-                    pesanan['pembeli'] != pesananMasuk[index - 1]['pembeli']) {
-                  separator = Column(
-                    children: [
-                      SizedBox(height: 20),
-                      Divider(
-                        color: Colors.grey,
-                        height: 10,
-                        thickness: 2,
-                      ),
-                      SizedBox(height: 10),
-                    ],
-                  );
-                }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    separator,
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: EdgeInsets.all(10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Pembeli: ${pesanan['pembeli']}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            'Status: $status',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          ListTile(
-                            leading: Image.asset(
-                              'assets/images/image.jpeg', // Menggunakan gambar dari assets
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            ),
-                            title: Text(pesanan['nama_produk'] ?? ''),
-                            subtitle: Text(
-                                'Total Harga: Rp. ${pesanan['total_harga']}'),
-                          ),
-                        ],
-                      ),
+                return Card(
+                  margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: ListTile(
+                    onTap: () {
+                      _showPesananDetail(pesanan);
+                    },
+                    leading: Image.asset(
+                      'assets/images/image.jpeg',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
                     ),
-                  ],
+                    title: Text(pesanan['nama_produk'] ?? ''),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            'Jumlah Pesanan:  ${pesanan['jumlah']} ${pesanan['satuan']} '),
+                        Text(
+                            'Total Harga: Rp. ${pesanan['total_harga'].toString()}'),
+                        Text('Status: ${_getStatusText(status)}'),
+                        if (status ==
+                            '1') // Menampilkan tombol hanya jika status adalah 'Pesanan Dibuat'
+                          Row(
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  _konfirmasiPesanan(
+                                      pesanan['id_pesanan'].toString());
+                                },
+                                child: Text('Konfirmasi'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  _tolakPesanan(
+                                      pesanan['id_pesanan'].toString());
+                                },
+                                child: Text('Tolak'),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home,
-              color: Color(0xFF64AA54),
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business, color: Color(0xFF64AA54)),
-            label: 'Manajemen Produk',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt, color: Color(0xFF64AA54)),
-            label: 'Pesanan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: Color(0xFF64AA54)),
-            label: 'Profil',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFF64AA54),
-        onTap: _onItemTapped,
-      ),
     );
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 0) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PenjualPage()),
+  void _showPesananDetail(Map<String, dynamic> pesanan) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Detail Pesanan'),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Pembeli: ${pesanan['pembeli']}'),
+              Text('Nama Produk: ${pesanan['nama_produk']}'),
+              Text(
+                  'Jumlah: ${pesanan['jumlah'].toString()} ${pesanan['satuan']}'),
+              Text('Total Harga: Rp. ${pesanan['total_harga'].toString()}'),
+              Text('Status: ${_getStatusText(pesanan['status'].toString())}'),
+              Text('Alamat Pembeli: ${(pesanan['alamat_pembeli'])}'),
+              // Tambahkan informasi lainnya sesuai kebutuhan
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Tutup'),
+            ),
+            IconButton(
+              onPressed: () {
+                // Construct the WhatsApp message with the seller's phone number
+                String phoneNumber = pesanan['nomor_telepon_penjual'];
+                String message = 'Halo, saya tertarik dengan produk Anda.';
+
+                // Launch WhatsApp with the predefined message
+                _launchWhatsApp(phoneNumber, message);
+              },
+              icon: Icon(
+                Icons.chat,
+                color: Colors.green,
+              ), // Add your desired chat icon
+            ),
+          ],
         );
-      } else if (index == 1) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ManageProductPage()),
-        );
-      } else if (index == 3) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ProfilePage()),
-        );
-      }
-    });
+      },
+    );
+  } // Function to launch WhatsApp with a predefined message
+
+  void _launchWhatsApp(String phoneNumber, String message) async {
+    // Encode the message for URL
+    String urlMessage = Uri.encodeComponent(message);
+
+    // Construct the WhatsApp URL
+    String url = 'https://wa.me/$phoneNumber/?text=$urlMessage';
+
+    // Check if WhatsApp is installed on the device and launch the URL
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      // Handle if WhatsApp is not installed
+      print('Could not launch WhatsApp');
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case '1':
+        return 'Pesanan Dibuat';
+      case '2':
+        return 'Pesanan Dibatalkan';
+      case '3':
+        return 'Pesanan Diterima';
+      case '4':
+        return 'Pesanan Ditolak Oleh Penjual';
+      default:
+        return 'Status Tidak Dikenali';
+    }
   }
 }

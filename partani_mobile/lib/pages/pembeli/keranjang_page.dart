@@ -259,7 +259,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'Rp. ${calculateTotal()}',
+                              'Rp. ${calculateTotal().toStringAsFixed(2)}',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

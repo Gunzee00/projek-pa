@@ -80,7 +80,24 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
      Route::post('/pesanan/buat-pesanan-langsung', [PesananController::class, 'buatPesananLangsung']);
      //membuat pesanan dari keranjang
      Route::post('/pesanan/buat-pesanan', [PesananController::class, 'buatPesananDariKeranjang']);
-     //penjual konfirmasi pesanan
+
+
+
+     //pemebeli membatalkan pesanan oleh pembeli
+     Route::put('/pesanan/batalkan/{id}', [PesananController::class, 'batalkanPesanan']);
+    // penjual konfirmasi pesanan
+     Route::post('/pesanan/konfirmasi/{id}', [PesananController::class, 'konfirmasiPesanan']);
+    //penjual tolak pesanan
+    Route::put('/pesanan/tolak/{id}', [PesananController::class, 'tolakPesanan']);
+    //penjual tolak pesanan
+    Route::put('/pesanan/batalkankonfirmasi/{id}', [PesananController::class, 'batalkanPesananSetelahKonfirmasi']);
+    //detail pesanan pembeli
+    Route::get('/pesanan/pembeli/{id_pesanan}', [PesananController::class, 'detailPesananPembeli']);
+    //detail pesanan penjual
+    Route::get('/pesanan/penjual/{id_pesanan}', [PesananController::class, 'detailPesananPenjual']);
+
+
+
      
 
 });

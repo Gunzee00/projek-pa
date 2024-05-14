@@ -184,7 +184,7 @@ class _ManageProductPageState extends State<ManageProductPage> {
       } else if (index == 2) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PesananPage()),
+          MaterialPageRoute(builder: (context) => PesananPenjualPage()),
         );
       } else if (index == 3) {
         Navigator.push(

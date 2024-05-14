@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final dynamic product;
@@ -135,32 +136,26 @@ class ProductDetailPage extends StatelessWidget {
                         ),
                         // Widget untuk logo WhatsApp
                         GestureDetector(
-                          onTap: () {
+                          onTap: () async {
+                            // Ganti dengan logika untuk mengambil nomor telepon penjual dari data produk yang baru saja dibuat
+                            String phoneNumber = product[
+                                'nomor_penjual']; // Ganti dengan nomor telepon penjual yang sesuai
 
+                            // Periksa apakah nomor telepon penjual tidak null sebelum mengakses WhatsApp
+                            if (phoneNumber != null) {
+                              // URL untuk membuka aplikasi WhatsApp dengan nomor telepon yang diberikan
+                              String whatsappUrl = 'https://wa.me/$phoneNumber';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                            
-                            // Tambahkan logika untuk membuka aplikasi WhatsApp
-                            // Misalnya, menggunakan package_url_launcher untuk membuka aplikasi WhatsApp
-                            // Pastikan Anda telah menambahkan package tersebut di file pubspec.yaml
-                            // Contoh:
-                            // launch('https://wa.me/<nomor_telepon>');
+                              // Membuka aplikasi WhatsApp
+                              if (await canLaunch(whatsappUrl)) {
+                                await launch(whatsappUrl);
+                              } else {
+                                throw 'Could not launch $whatsappUrl';
+                              }
+                            } else {
+                              // Tindakan yang diambil jika nomor telepon penjual null
+                              print('Nomor telepon penjual tidak tersedia');
+                            }
                           },
                           child: Container(
                             padding: EdgeInsets.all(10),
@@ -170,8 +165,7 @@ class ProductDetailPage extends StatelessWidget {
                                   .green, // Warna latar belakang ikon WhatsApp
                             ),
                             child: Icon(
-                              Icons
-                                  .chat, // Ganti dengan ikon WhatsApp yang sesuai
+                              Icons.chat, // Ikon WhatsApp
                               color: Colors.white, // Warna ikon WhatsApp
                               size: 30, // Ukuran ikon WhatsApp
                             ),
@@ -208,6 +202,38 @@ class ProductDetailPage extends StatelessWidget {
                         ],
                       ),
                     ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius:
+                            BorderRadius.circular(10), // Menambahkan radius
+                        color: Colors.grey[200], // Memberi warna latar belakang
+                      ),
+                      padding: EdgeInsets.all(
+                          10), // Memberi padding agar konten tidak terlalu dekat dengan tepi
+                      child: SizedBox(
+                        width: double.infinity, // Menggunakan lebar maksimal
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.person,
+                              color: Color.fromARGB(
+                                  255, 73, 73, 73), // Warna ikon person
+                            ),
+                            SizedBox(
+                                width:
+                                    10), // Memberi jarak antara ikon dan teks
+                            Text(
+                              '${product['nama_penjual']}',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
                     SizedBox(height: 10),
                     // Container untuk deskripsi produk
                     Card(

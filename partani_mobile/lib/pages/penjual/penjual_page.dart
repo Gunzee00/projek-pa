@@ -32,7 +32,8 @@ class _PenjualPageState extends State<PenjualPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => PesananPage()), // Navigasi ke PesananPage
+              builder: (context) =>
+                  PesananPenjualPage()), // Navigasi ke PesananPage
         );
       } else if (index == 3) {
         Navigator.push(

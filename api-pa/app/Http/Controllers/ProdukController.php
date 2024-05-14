@@ -21,7 +21,7 @@ class ProdukController extends Controller
     public function showAll()
     {
         // Mengambil semua data barang dari database
-        $produks = Produk::all(['id_produk', 'id_pembuat', 'nama_produk', 'lokasi_produk', 'harga', 'gambar', 'deskripsi', 'satuan', 'minimal_pemesanan', 'stok']);
+        $produks = Produk::all(['id_produk', 'id_pembuat', 'nama_produk', 'lokasi_produk', 'harga', 'gambar', 'deskripsi', 'satuan', 'minimal_pemesanan', 'stok','nama_penjual','nomor_penjual']);
         
         // Memberikan respons dalam bentuk JSON dengan semua data barang
         return response()->json(['produk' => $produks], 200);
@@ -29,39 +29,44 @@ class ProdukController extends Controller
     
 
     public function store(Request $request)
-    {
-        $userId = auth()->user()->id;
-        $validator = Validator::make($request->all(), [
-            'nama_produk' => 'required',
-            'harga' => 'required',
-            'gambar' => 'required',
-            'deskripsi' => 'required',
-            'satuan' => 'required',
-            'lokasi_produk' => 'required',
-            'minimal_pemesanan' => 'required|numeric',
-            'stok' => 'required|numeric',
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 400);
-        }
-    
-        $formData = $request->all();
-        $formData['id_pembuat'] = $userId;
-    
-        // Mengecek apakah jumlah yang diminta memenuhi persyaratan minimal pemesanan
-        if ($formData['minimal_pemesanan'] > 0 && $formData['minimal_pemesanan'] > $formData['stok']) {
-            return response()->json(['message' => 'Jumlah minimal pemesanan tidak boleh melebihi stok yang tersedia.'], 400);
-        }
-    
-        $form = Produk::create($formData);
-    
-        $this->response['success'] = true;
-        $this->response['message'] = 'Form created successfully';
-        $this->response['data'] = $form;
-    
-        return response()->json($this->response, 201);
+{
+    $userId = auth()->user()->id;
+    $validator = Validator::make($request->all(), [
+        'nama_produk' => 'required',
+        'harga' => 'required',
+        'gambar' => 'required',
+        'deskripsi' => 'required',
+        'satuan' => 'required',
+        'lokasi_produk' => 'required',
+        'minimal_pemesanan' => 'required|numeric',
+        'stok' => 'required|numeric',
+    ]); 
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 400);
     }
+
+    // Mendapatkan nama penjual
+    $namaPenjual = auth()->user()->nama_lengkap;
+    // Mendapatkan nomor telepon penjual
+    $nomorPenjual = auth()->user()->nomor_telepon;
+
+    $formData = $request->all();
+    $formData['id_pembuat'] = $userId;
+    $formData['nama_penjual'] = $namaPenjual; // Menambahkan nama penjual ke dalam data
+    $formData['nomor_penjual'] = $nomorPenjual; // Menambahkan nomor telepon penjual ke dalam data
+
+    // Mengecek apakah jumlah yang diminta memenuhi persyaratan minimal pemesanan
+    if ($formData['minimal_pemesanan'] > 0 && $formData['minimal_pemesanan'] > $formData['stok']) {
+        return response()->json(['message' => 'Jumlah minimal pemesanan tidak boleh melebihi stok yang tersedia.'], 400);
+    }
+
+    $form = Produk::create($formData);
+
+    return response()->json(['message' => 'Form created successfully', 'data' => $form], 201);
+}
+
+    
     
     public function delete($id)
 {
