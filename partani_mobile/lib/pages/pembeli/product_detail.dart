@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
@@ -12,7 +13,8 @@ class ProductDetailPage extends StatelessWidget {
 
   ProductDetailPage({required this.product});
 
-  Future<void> tambahProdukKeKeranjang(int idProduk, int jumlah) async {
+  Future<void> tambahProdukKeKeranjang(
+      BuildContext context, int idProduk, int jumlah) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
     String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
@@ -37,22 +39,30 @@ class ProductDetailPage extends StatelessWidget {
       if (response.statusCode == 201) {
         // Produk berhasil ditambahkan ke keranjang
         print('Produk berhasil ditambahkan ke keranjang.');
-        // TODO: Add visual feedback to the user (optional)
+        _showSnackbar(context, 'Produk berhasil ditambahkan ke keranjang.');
       } else {
         // Gagal menambahkan produk ke keranjang
         print('Gagal menambahkan produk ke keranjang.');
-        // Menampilkan pesan error dari response server
         print('Error: ${response.body}');
-        // TODO: Add visual feedback to the user (optional)
+        _showSnackbar(context, 'Gagal menambahkan produk ke keranjang.');
       }
     } catch (e) {
-      // Error ketika melakukan request
       print('Error: $e');
-      // TODO: Add visual feedback to the user (optional)
+      _showSnackbar(context, 'Terjadi kesalahan: $e');
     }
   }
 
-  Future<void> pesanProduk(int idProduk, int jumlah) async {
+  void _showSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> pesanProduk(
+      int idProduk, int jumlah, BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
     String apiUrl = 'http://10.0.2.2:8000/api/pesanan/buat-pesanan-langsung';
@@ -75,20 +85,28 @@ class ProductDetailPage extends StatelessWidget {
       );
 
       if (response.statusCode == 201) {
-        // Produk berhasil ditambahkan ke keranjang
+        // Pesanan berhasil dilakukan
         print('Berhasil melakukan pemesanan');
-        // TODO: Add visual feedback to the user (optional)
+        _showSnackbar(context, 'Pesanan berhasil dilakukan.');
+
+        // Delay 2 detik sebelum berpindah ke halaman PesananPembeliPage
+        Future.delayed(Duration(seconds: 2), () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => PesananPembeliPage()),
+          );
+        });
       } else {
-        // Gagal menambahkan produk ke keranjang
+        // Gagal melakukan pemesanan
         print('Gagal melakukan pemesanan');
         // Menampilkan pesan error dari response server
         print('Error: ${response.body}');
-        // TODO: Add visual feedback to the user (optional)
+        _showSnackbar(context, 'Gagal melakukan pemesanan.');
       }
     } catch (e) {
       // Error ketika melakukan request
       print('Error: $e');
-      // TODO: Add visual feedback to the user (optional)
+      _showSnackbar(context, 'Terjadi kesalahan: $e');
     }
   }
 
@@ -283,9 +301,8 @@ class ProductDetailPage extends StatelessWidget {
                   int jumlah = product['minimal_pemesanan'];
                   print('Jumlah: $jumlah');
                   pesanProduk(
-                    product['id_produk'],
-                    jumlah,
-                  );
+                      product['id_produk'], jumlah, context // Tambahkan context
+                      );
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Color(0xFF64AA54),
@@ -299,6 +316,7 @@ class ProductDetailPage extends StatelessWidget {
                   int jumlah = product['minimal_pemesanan'];
                   print('Jumlah: $jumlah');
                   tambahProdukKeKeranjang(
+                    context,
                     product['id_produk'],
                     jumlah,
                   );

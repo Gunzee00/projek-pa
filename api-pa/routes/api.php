@@ -95,6 +95,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/pesanan/pembeli/{id_pesanan}', [PesananController::class, 'detailPesananPembeli']);
     //detail pesanan penjual
     Route::get('/pesanan/penjual/{id_pesanan}', [PesananController::class, 'detailPesananPenjual']);
+     //count pesanan yang masuk
+    Route::get('/pesanan/count/masuk', [PesananController::class, 'countPesananMasuk']);
+    //count pesanan yang di konfirmasi
+    Route::get('/pesanan/count/dikonfirmasi', [PesananController::class, 'countPesananDikonfirmasi']);
 
 
 

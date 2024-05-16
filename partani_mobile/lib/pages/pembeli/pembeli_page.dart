@@ -19,9 +19,13 @@ class _PembeliPageState extends State<PembeliPage> {
   TextEditingController searchController = TextEditingController();
   late String token = ''; // Inisialisasi token
 
-  Future<void> fetchProducts() async {
-    final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/api/produk/all'));
+  Future<void> fetchProducts({String query = ''}) async {
+    String apiUrl = 'http://10.0.2.2:8000/api/produk/all';
+    if (query.isNotEmpty) {
+      apiUrl += '?q=$query';
+    }
+
+    final response = await http.get(Uri.parse(apiUrl));
     if (response.statusCode == 200) {
       setState(() {
         products = json.decode(response.body)['produk'];
@@ -130,22 +134,23 @@ class _PembeliPageState extends State<PembeliPage> {
         );
 
         if (response.statusCode == 201) {
-          // Produk berhasil ditambahkan ke keranjang
-          print('Produk berhasil ditambahkan ke keranjang.');
-          // TODO: Tambahkan feedback visual ke pengguna (opsional)
+          _showSnackbar('Produk berhasil ditambahkan ke keranjang.');
         } else {
-          // Gagal menambahkan produk ke keranjang
-          print('Gagal menambahkan produk ke keranjang.');
-          // Menampilkan pesan error dari response server
-          print('Error: ${response.body}');
-          // TODO: Tambahkan feedback visual ke pengguna (opsional)
+          _showSnackbar('Gagal menambahkan produk ke keranjang.');
         }
       } catch (e) {
-        // Error ketika melakukan request
-        print('Error: $e');
-        // TODO: Tambahkan feedback visual ke pengguna (opsional)
+        _showSnackbar('Terjadi kesalahan: $e');
       }
     }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   Widget menuItem({required String label, required Color color}) {
@@ -173,70 +178,39 @@ class _PembeliPageState extends State<PembeliPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Partani'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              logout();
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(16),
+          Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: 16.0, vertical: 8.0), // Kurangi padding
+            child: TextFormField(
+              controller: searchController,
+              onChanged: (value) {
+                fetchProducts(query: value);
+              },
+              decoration: InputDecoration(
+                hintText: 'Search',
+                prefixIcon: Icon(
+                  Icons.search,
+                  size: 20, // Atur ukuran ikon di sini
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: 10, horizontal: 20), // Sesuaikan padding konten
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(32.0)),
+                ),
               ),
-            ),
-            padding: EdgeInsets.fromLTRB(36, 20, 36, 36),
-            margin: EdgeInsets.only(bottom: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Partani',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (token.isNotEmpty)
-                      IconButton(
-                        icon: Icon(Icons.logout),
-                        color: Colors.white,
-                        onPressed: () {
-                          logout(); // Panggil metode logout saat tombol logout ditekan
-                        },
-                      ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.all(Radius.circular(32)),
-                  ),
-                  height: 40,
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: TextFormField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search',
-                      prefixIcon: Icon(Icons.search),
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 26),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    menuItem(label: 'All', color: Colors.purple),
-                    menuItem(label: 'Sayur', color: Colors.grey),
-                    menuItem(label: 'Buah', color: Colors.grey),
-                    menuItem(label: 'Rempah-Rempah', color: Colors.grey),
-                  ],
-                ),
-              ],
             ),
           ),
           Expanded(
@@ -283,11 +257,9 @@ class _PembeliPageState extends State<PembeliPage> {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.only(
-                                    left: 15,
-                                    top: 8), // Added padding for location text
+                                padding:
+                                    const EdgeInsets.only(left: 15, top: 8),
                                 child: Row(
-                                  // Added row to display location text and icon
                                   children: [
                                     Icon(
                                       Icons.location_on,
@@ -295,11 +267,9 @@ class _PembeliPageState extends State<PembeliPage> {
                                           255, 118, 119, 119),
                                       size: 20,
                                     ),
-                                    SizedBox(
-                                        width: 4), // Added SizedBox for spacing
+                                    SizedBox(width: 4),
                                     Text(
-                                      products[index]['lokasi_produk'] ??
-                                          '', // Display location of the product
+                                      products[index]['lokasi_produk'] ?? '',
                                       style: TextStyle(
                                           color: Colors.black.withOpacity(0.6)),
                                     ),
@@ -329,14 +299,10 @@ class _PembeliPageState extends State<PembeliPage> {
                               onPressed: () async {
                                 int jumlah =
                                     products[index]['minimal_pemesanan'];
-                                print(
-                                    'Jumlah: $jumlah'); // Add this line to check type
                                 SharedPreferences prefs =
                                     await SharedPreferences.getInstance();
-                                token = prefs.getString('token') ??
-                                    ''; // Inisialisasi token
+                                String token = prefs.getString('token') ?? '';
                                 if (token.isEmpty) {
-                                  // Jika token kosong, tampilkan popup untuk autentikasi
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
@@ -345,7 +311,6 @@ class _PembeliPageState extends State<PembeliPage> {
                                         content: Text(
                                             "Kamu harus melakukan autentikasi dahulu."),
                                         actions: <Widget>[
-                                          // Tombol untuk pergi ke halaman login
                                           TextButton(
                                             child: Text("Login"),
                                             onPressed: () {
@@ -358,7 +323,6 @@ class _PembeliPageState extends State<PembeliPage> {
                                               );
                                             },
                                           ),
-                                          // Tombol untuk menutup popup
                                           TextButton(
                                             child: Text("Close"),
                                             onPressed: () {
@@ -370,7 +334,6 @@ class _PembeliPageState extends State<PembeliPage> {
                                     },
                                   );
                                 } else {
-                                  // Jika token tidak kosong, tambahkan produk ke keranjang
                                   tambahProdukKeKeranjang(
                                     products[index]['id_produk'],
                                     jumlah,

@@ -18,14 +18,36 @@ class ProdukController extends Controller
         }
     
     //menampilkan semua barang 
-    public function showAll()
-    {
-        // Mengambil semua data barang dari database
-        $produks = Produk::all(['id_produk', 'id_pembuat', 'nama_produk', 'lokasi_produk', 'harga', 'gambar', 'deskripsi', 'satuan', 'minimal_pemesanan', 'stok','nama_penjual','nomor_penjual']);
+    // public function showAll()
+    // {
+    //     // Mengambil semua data barang dari database
+    //     $produks = Produk::all(['id_produk', 'id_pembuat', 'nama_produk', 'lokasi_produk', 'harga', 'gambar', 'deskripsi', 'satuan', 'minimal_pemesanan', 'stok','nama_penjual','nomor_penjual']);
         
-        // Memberikan respons dalam bentuk JSON dengan semua data barang
-        return response()->json(['produk' => $produks], 200);
+    //     // Memberikan respons dalam bentuk JSON dengan semua data barang
+    //     return response()->json(['produk' => $produks], 200);
+    // }
+
+    public function showAll(Request $request)
+{
+    // Mengambil parameter query pencarian
+    $query = $request->input('q');
+
+    // Memulai query untuk mengambil semua produk
+    $produkQuery = Produk::query();
+
+    // Jika ada parameter pencarian, tambahkan kondisi pencarian ke query
+    if ($query) {
+        $produkQuery->where('nama_produk', 'LIKE', '%' . $query . '%')
+                    ->orWhere('lokasi_produk', 'LIKE', '%' . $query . '%');
     }
+
+    // Eksekusi query dan ambil hasilnya
+    $produks = $produkQuery->get(['id_produk', 'id_pembuat', 'nama_produk', 'lokasi_produk', 'harga', 'gambar', 'deskripsi', 'satuan', 'minimal_pemesanan', 'stok','nama_penjual','nomor_penjual']);
+
+    // Memberikan respons dalam bentuk JSON dengan data produk
+    return response()->json(['produk' => $produks], 200);
+}
+
     
 
     public function store(Request $request)

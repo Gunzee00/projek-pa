@@ -274,6 +274,37 @@ public function detailPesananPenjual(Request $request, $id_pesanan)
     return response()->json($pesanan, 200);
 }
 
+    public function countPesananMasuk(Request $request)
+        {
+            // Memastikan pengguna terautentikasi
+            if (!Auth::check()) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            $userId = Auth::id();
+            
+            $jumlahPesananMasuk = Pesanan::where('status', 1)
+                                        ->where('user_id_penjual', $userId)
+                                        ->count();
+
+            return response()->json(['jumlah_pesanan_masuk' => $jumlahPesananMasuk], 200);
+        }
+
+        public function countPesananDikonfirmasi(Request $request)
+        {
+            // Memastikan pengguna terautentikasi
+            if (!Auth::check()) {
+                return response()->json(['message' => 'Unauthorized'], 401);
+            }
+
+            $userId = Auth::id();
+
+            $jumlahPesananDikonfirmasi = Pesanan::where('status', 3)
+                                                ->where('user_id_penjual', $userId)
+                                                ->count();
+
+            return response()->json(['jumlah_pesanan_dikonfirmasi' => $jumlahPesananDikonfirmasi], 200);
+        }
 
 
 }
