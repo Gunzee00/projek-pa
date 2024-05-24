@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:partani_mobile/components/component%20penjual/bottombar_penjual.dart';
 import 'package:partani_mobile/pages/profile%20user/editprofile.dart';
+import 'package:partani_mobile/user_login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -11,6 +13,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? userInfo;
+  bool isAuthenticated = true; // Menambahkan flag untuk autentikasi
 
   @override
   void initState() {
@@ -21,6 +24,48 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> fetchUserInfo() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String authToken = prefs.getString('token') ?? '';
+
+    if (authToken.isEmpty) {
+      // Mengatur flag autentikasi jika token kosong
+      setState(() {
+        isAuthenticated = false;
+      });
+
+      // Menampilkan dialog jika token kosong
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Peringatan"),
+              content: Text("Kamu harus melakukan autentikasi dahulu."),
+              actions: <Widget>[
+                // Tombol untuk pergi ke halaman login
+                TextButton(
+                  child: Text("Login"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
+                  },
+                ),
+                // Tombol untuk menutup popup
+                TextButton(
+                  child: Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      });
+
+      return; // Menghentikan eksekusi lebih lanjut jika token kosong
+    }
 
     final url = Uri.parse('http://10.0.2.2:8000/api/user/profile');
     final response = await http.get(
@@ -35,7 +80,7 @@ class _ProfilePageState extends State<ProfilePage> {
         userInfo = json.decode(response.body);
       });
     } else {
-      print("gagal menampilkan profile");
+      print("Gagal menampilkan profil");
     }
   }
 
@@ -45,58 +90,65 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: Text('Profil'),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(height: 20),
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage('assets/images/image.jpeg'),
-            ),
-            SizedBox(height: 20),
-            userInfo != null
-                ? Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ProfileField(
-                            label: 'Username', value: userInfo!['username']),
-                        ProfileField(
-                            label: 'Nama Lengkap',
-                            value: userInfo!['nama_lengkap']),
-                        ProfileField(
-                            label: 'Nomor Telepon',
-                            value: userInfo!['nomor_telepon']),
-                        ProfileField(
-                          label: 'Alamat',
-                          value: userInfo!['alamat'],
-                          maxLines: 2,
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+      bottomNavigationBar: BottombarPenjual(),
+      body: isAuthenticated
+          ? userInfo != null
+              ? SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      SizedBox(height: 20),
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage: AssetImage('assets/images/image.jpeg'),
+                      ),
+                      SizedBox(height: 20),
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => EditProfilePage()),
-                                );
-                              },
-                              child: Text('Edit Profil'),
+                            ProfileField(
+                                label: 'Username',
+                                value: userInfo!['username']),
+                            ProfileField(
+                                label: 'Nama Lengkap',
+                                value: userInfo!['nama_lengkap']),
+                            ProfileField(
+                                label: 'Nomor Telepon',
+                                value: userInfo!['nomor_telepon']),
+                            ProfileField(
+                              label: 'Alamat',
+                              value: userInfo!['alamat'],
+                              maxLines: 2,
+                            ),
+                            SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              EditProfilePage()),
+                                    );
+                                  },
+                                  child: Text('Edit Profil'),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  )
-                : CircularProgressIndicator(), // Menampilkan indikator loading selama data diambil
-          ],
-        ),
-      ),
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child:
+                      CircularProgressIndicator()) // Menampilkan indikator loading selama data diambil
+          : Container(), // Tidak menampilkan apapun jika tidak terautentikasi
     );
   }
 }

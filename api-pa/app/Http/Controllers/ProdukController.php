@@ -10,23 +10,13 @@ use Illuminate\Support\Facades\Validator;
 class ProdukController extends Controller
 {
     //MENAMPILKAN SAAT LOGIN
-        public function index()
-        {
-            $userId = auth()->user()->id;
-            $produks = Produk::where('id_pembuat', $userId)->get();
-            return response()->json(['produk' => $produks]);
+ public function index()
+    {
+          $userId = auth()->user()->id;
+         $produks = Produk::where('id_pembuat', $userId)->get();
+          return response()->json(['produk' => $produks]);
         }
-    
-    //menampilkan semua barang 
-    // public function showAll()
-    // {
-    //     // Mengambil semua data barang dari database
-    //     $produks = Produk::all(['id_produk', 'id_pembuat', 'nama_produk', 'lokasi_produk', 'harga', 'gambar', 'deskripsi', 'satuan', 'minimal_pemesanan', 'stok','nama_penjual','nomor_penjual']);
-        
-    //     // Memberikan respons dalam bentuk JSON dengan semua data barang
-    //     return response()->json(['produk' => $produks], 200);
-    // }
-
+       
     public function showAll(Request $request)
 {
     // Mengambil parameter query pencarian
@@ -88,7 +78,7 @@ class ProdukController extends Controller
     return response()->json(['message' => 'Form created successfully', 'data' => $form], 201);
 }
 
-    
+    //delete product
     
     public function delete($id)
 {
@@ -105,6 +95,38 @@ class ProdukController extends Controller
 
 //UPDATE BARANG
 
+// public function update(Request $request, $id)
+// {
+//     $userId = auth()->user()->id;
+//     $produk = Produk::find($id);
+
+//     if (!$produk) {
+//         return response()->json(['message' => 'Produk not found'], 404);
+//     }
+
+//     $validator = Validator::make($request->all(), [
+//         'nama_produk' => 'required',
+//         'harga' => 'required',
+//         'gambar' => 'required',
+//         'deskripsi' => 'required',
+//         'satuan' => 'required',
+//         'lokasi_produk' => 'required',
+//         'minimal_pemesanan' => 'required|numeric',
+//         'stok' => 'required|numeric',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json(['errors' => $validator->errors()], 400);
+//     }
+
+//     $formData = $request->all();
+//     $formData['id_pembuat'] = $userId;
+
+//     $produk->update($formData);
+
+//     return response()->json(['message' => 'Produk updated successfully', 'data' => $produk], 200);
+// }
+
 public function update(Request $request, $id)
 {
     $userId = auth()->user()->id;
@@ -114,72 +136,12 @@ public function update(Request $request, $id)
         return response()->json(['message' => 'Produk not found'], 404);
     }
 
-    $validator = Validator::make($request->all(), [
-        'nama_produk' => 'required',
-        'harga' => 'required',
-        'gambar' => 'required',
-        'deskripsi' => 'required',
-        'satuan' => 'required',
-        'lokasi_produk' => 'required',
-        'minimal_pemesanan' => 'required|numeric',
-        'stok' => 'required|numeric',
-    ]);
+    // Tambahkan validasi jika perlu
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
-    }
-
-    $formData = $request->all();
-    $formData['id_pembuat'] = $userId;
-
-    $produk->update($formData);
+    $produk->update($request->all());
 
     return response()->json(['message' => 'Produk updated successfully', 'data' => $produk], 200);
 }
-
-
-
-
-
-    // public function store(Request $request)
-    // {
-    //     $userId = auth()->user()->id;
-    //     // Validasi input
-    //     $request->validate([
-    //         'nama_barang' => 'required',
-    //         'harga' => 'required',
-    //         'gambar' => 'required',
-    //         'deskripsi' => 'required',
-    //         'satuan' => 'required',
-    //         'minimal_pemesanan' => 'required|numeric',
-    //         'stok' => 'required|numeric',
-    //         // Anda mungkin perlu menambahkan validasi lain sesuai kebutuhan
-    //     ]);
-    //     return $request;
-
-    //     if (!Auth::check()) {
-    //         return response()->json(['message' => 'Unauthorized'], 401);
-    //     }
-
-    //     // Membuat barang baru
-    //     $produk = new Barang();
-    //     $produk->nama_barang = $request->nama_barang;
-    //     $produk->harga = $request->harga;
-    //     $produk->gambar = $request->gambar;
-    //     $produk->deskripsi = $request->deskripsi;
-    //     $produk->satuan = $request->satuan;
-    //     $produk->minimal_pemesanan = $request->minimal_pemesanan;
-    //     $produk->stok = $request->stok;
-
-    //     // Set id_pembuat dari pembeli yang sedang login
-    //     $produk->id_pembuat = $userId; // Mengambil ID pembeli yang sedang login
-
-    //     // Simpan barang ke database
-    //     $produk->save();
-
-    //     // Memberi respons bahwa barang berhasil dibuat
-    //     return response()->json(['message' => 'Barang berhasil dibuat', 'produk' => $produk], 201);
-    // }
-
+    
      
 }

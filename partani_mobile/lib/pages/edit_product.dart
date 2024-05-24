@@ -66,8 +66,7 @@ class _EditProductState extends State<EditProduct> {
                       _productPriceController.text), // Konversi ke double
                   'gambar_produk': _productImageController.text,
                 };
-                // Pass the updated data back to the calling widget
-                Navigator.pop(context, updatedData);
+                 Navigator.pop(context, updatedData);
               },
               child: Text('Save Changes'),
             ),

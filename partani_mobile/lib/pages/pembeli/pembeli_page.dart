@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:partani_mobile/components/component%20pembeli/bottombar_pembeli.dart';
 import 'dart:convert';
 import 'package:partani_mobile/pages/pembeli/keranjang_page.dart';
 import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
+import 'package:partani_mobile/pages/pembeli/riwayat_pesananpembeli.dart';
 import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
 
 import 'package:partani_mobile/pages/pembeli/product_detail.dart';
@@ -181,12 +183,13 @@ class _PembeliPageState extends State<PembeliPage> {
       appBar: AppBar(
         title: Text('Partani'),
         actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () {
-              logout();
-            },
-          ),
+          if (token.isNotEmpty) // Check if the user is authenticated
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () {
+                logout();
+              },
+            ),
         ],
       ),
       body: Column(
@@ -352,63 +355,7 @@ class _PembeliPageState extends State<PembeliPage> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Container(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              IconButton(
-                icon: Icon(
-                  Icons.home,
-                  color: Color(0xFF64AA54),
-                ),
-                iconSize: 30,
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.shopping_cart,
-                  color: Color(0xFF64AA54),
-                ),
-                iconSize: 30,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => KeranjangPage()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.receipt,
-                  color: Color(0xFF64AA54),
-                ),
-                iconSize: 30,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => PesananPembeliPage()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.account_circle,
-                  color: Color(0xFF64AA54),
-                ),
-                iconSize: 30,
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProfilePage()),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
+      bottomNavigationBar: BottombarPembeli(), // Tambahkan navbar di sini
     );
   }
 }

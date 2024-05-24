@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:partani_mobile/pages/pembeli/product_detail.dart'; // Impor ProductDetailPage
+import 'package:partani_mobile/pages/pembeli/product_detail.dart';
+import 'package:partani_mobile/user_login/login.dart'; // Import LoginPage
 
 class KeranjangPage extends StatefulWidget {
   @override
@@ -11,12 +12,60 @@ class KeranjangPage extends StatefulWidget {
 
 class _KeranjangPageState extends State<KeranjangPage> {
   List<Map<String, dynamic>> keranjangData = [];
-  late String token;
+  String? token;
   String placeholderImageUrl = 'assets/images/image.jpeg';
+  bool isAuthenticated = true; // Add an authentication flag
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
 
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
+
+    if (token!.isEmpty) {
+      // Set authentication flag if token is empty
+      setState(() {
+        isAuthenticated = false;
+      });
+
+      // Show dialog if token is empty
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Peringatan"),
+              content: Text("Kamu harus melakukan autentikasi dahulu."),
+              actions: <Widget>[
+                // Button to go to the login page
+                TextButton(
+                  child: Text("Login"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
+                  },
+                ),
+                // Button to close the popup
+                TextButton(
+                  child: Text("Close"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      });
+      return; // Stop further execution if token is empty
+    }
 
     final response = await http.get(
       Uri.parse('http://10.0.2.2:8000/api/keranjang'),
@@ -28,14 +77,11 @@ class _KeranjangPageState extends State<KeranjangPage> {
         keranjangData = json.decode(response.body).cast<Map<String, dynamic>>();
       });
     } else {
-      print("keranjang kosong");
+      print("Keranjang kosong");
     }
   }
 
   Future<void> hapusBarangDariKeranjang(int idProduk) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    token = prefs.getString('token') ?? '';
-
     final response = await http.delete(
       Uri.parse('http://10.0.2.2:8000/api/keranjang/hapus-keranjang'),
       headers: {
@@ -48,14 +94,11 @@ class _KeranjangPageState extends State<KeranjangPage> {
     if (response.statusCode == 200) {
       fetchData();
     } else {
-      print('gagal menghapus');
+      print('Gagal menghapus');
     }
   }
 
   Future<void> buatPesananDariKeranjang(BuildContext context) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    token = prefs.getString('token') ?? '';
-
     final response = await http.post(
       Uri.parse('http://10.0.2.2:8000/api/pesanan/buat-pesanan'),
       headers: {
@@ -83,12 +126,6 @@ class _KeranjangPageState extends State<KeranjangPage> {
       }
     }
     return total;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
   }
 
   Future<void> showSuccessDialog(BuildContext context) async {
@@ -125,179 +162,183 @@ class _KeranjangPageState extends State<KeranjangPage> {
       appBar: AppBar(
         title: Text('Keranjang'),
       ),
-      body: keranjangData.isEmpty
-          ? Center(
-              child: Text(
-                'Keranjang kosong',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: keranjangData.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final item = keranjangData[index];
-                      final bool isFirstItem = index == 0 ||
-                          item['penjual'] !=
-                              keranjangData[index - 1]['penjual'];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (isFirstItem) SizedBox(height: 16),
-                          if (isFirstItem)
-                            Container(
-                              margin: EdgeInsets.symmetric(horizontal: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[300],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              child: Text(
-                                'Penjual: ${item['penjual']}',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          GestureDetector(
-                            onTap: () {
-                              if (item['id_produk'] != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductDetailPage(
-                                      product: {
-                                        'id_produk': item['id_produk'],
-                                      },
-                                    ),
+      body: isAuthenticated
+          ? keranjangData.isEmpty
+              ? Center(
+                  child: Text(
+                    'Keranjang kosong',
+                    style: TextStyle(fontSize: 18),
+                  ),
+                )
+              : Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: keranjangData.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final item = keranjangData[index];
+                          final bool isFirstItem = index == 0 ||
+                              item['penjual'] !=
+                                  keranjangData[index - 1]['penjual'];
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (isFirstItem) SizedBox(height: 16),
+                              if (isFirstItem)
+                                Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                );
-                              } else {
-                                print('ID produk tidak tersedia');
-                              }
-                            },
-                            child: Card(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Row(
-                                    children: [
-                                      Image.asset(
-                                        placeholderImageUrl,
-                                        width: 100,
-                                        height: 100,
-                                      ),
-                                      SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              item['nama_produk'],
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                              ),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              '${item['jumlah']} ${item['satuan']}',
-                                              style: TextStyle(fontSize: 16),
-                                            ),
-                                            SizedBox(height: 8),
-                                            Text(
-                                              'Rp.${item['total_harga']}',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.green,
-                                              ),
-                                            ),
-                                          ],
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 8),
+                                  child: Text(
+                                    'Penjual: ${item['penjual']}',
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              GestureDetector(
+                                onTap: () {
+                                  if (item['id_produk'] != null) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductDetailPage(
+                                          product: {
+                                            'id_produk': item['id_produk'],
+                                          },
                                         ),
                                       ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete),
-                                        onPressed: () {
-                                          hapusBarangDariKeranjang(
-                                              item['id_produk']);
-                                        },
+                                    );
+                                  } else {
+                                    print('ID produk tidak tersedia');
+                                  }
+                                },
+                                child: Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Row(
+                                        children: [
+                                          Image.asset(
+                                            placeholderImageUrl,
+                                            width: 100,
+                                            height: 100,
+                                          ),
+                                          SizedBox(width: 16),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item['nama_produk'],
+                                                  style: TextStyle(
+                                                    fontSize: 18,
+                                                  ),
+                                                ),
+                                                SizedBox(height: 8),
+                                                Text(
+                                                  '${item['jumlah']} ${item['satuan']}',
+                                                  style:
+                                                      TextStyle(fontSize: 16),
+                                                ),
+                                                SizedBox(height: 8),
+                                                Text(
+                                                  'Rp.${item['total_harga']}',
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(Icons.delete),
+                                            onPressed: () {
+                                              hapusBarangDariKeranjang(
+                                                  item['id_produk']);
+                                            },
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Padding(
-                        padding: EdgeInsets.all(30.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Total',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                            Text(
-                              'Rp. ${calculateTotal().toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                              ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          );
+                        },
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 20.0,
-                          horizontal: 5.0,
-                        ),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await buatPesananDariKeranjang(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 15,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Padding(
+                            padding: EdgeInsets.all(30.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Total',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  'Rp. ${calculateTotal().toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ],
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(28),
-                            ),
-                            foregroundColor: Colors.white,
-                            backgroundColor: Colors.green,
                           ),
-                          child: Text('Buat Pesanan'),
                         ),
-                      ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 20.0,
+                              horizontal: 5.0,
+                            ),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                await buatPesananDariKeranjang(context);
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: 15,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                foregroundColor: Colors.white,
+                                backgroundColor: Colors.green,
+                              ),
+                              child: Text('Buat Pesanan'),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-              ],
-            ),
+                )
+          : Container(), // Do not display anything if not authenticated
     );
   }
 }

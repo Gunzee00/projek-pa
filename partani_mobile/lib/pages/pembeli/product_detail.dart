@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
@@ -112,6 +114,9 @@ class ProductDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String phoneNumber = product['nomor_penjual'];
+    final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Detail Produk"),
@@ -153,27 +158,10 @@ class ProductDetailPage extends StatelessWidget {
                           ),
                         ),
                         // Widget untuk logo WhatsApp
+
                         GestureDetector(
                           onTap: () async {
-                            // Ganti dengan logika untuk mengambil nomor telepon penjual dari data produk yang baru saja dibuat
-                            String phoneNumber = product[
-                                'nomor_penjual']; // Ganti dengan nomor telepon penjual yang sesuai
-
-                            // Periksa apakah nomor telepon penjual tidak null sebelum mengakses WhatsApp
-                            if (phoneNumber != null) {
-                              // URL untuk membuka aplikasi WhatsApp dengan nomor telepon yang diberikan
-                              String whatsappUrl = 'https://wa.me/$phoneNumber';
-
-                              // Membuka aplikasi WhatsApp
-                              if (await canLaunch(whatsappUrl)) {
-                                await launch(whatsappUrl);
-                              } else {
-                                throw 'Could not launch $whatsappUrl';
-                              }
-                            } else {
-                              // Tindakan yang diambil jika nomor telepon penjual null
-                              print('Nomor telepon penjual tidak tersedia');
-                            }
+                            launchUrl(whatsApp);
                           },
                           child: Container(
                             padding: EdgeInsets.all(10),

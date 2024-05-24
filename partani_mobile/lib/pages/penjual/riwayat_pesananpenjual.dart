@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:partani_mobile/components/component%20penjual/bottombar_penjual.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class PesananPenjualPage extends StatefulWidget {
+import '../../components/component penjual/bottombar_penjual.dart';
+
+class RiwayatPesananPenjualPage extends StatefulWidget {
   @override
-  _PesananPenjualPageState createState() => _PesananPenjualPageState();
+  _RiwayatPesananPenjualPageState createState() =>
+      _RiwayatPesananPenjualPageState();
 }
 
-class _PesananPenjualPageState extends State<PesananPenjualPage> {
+class _RiwayatPesananPenjualPageState extends State<RiwayatPesananPenjualPage> {
   List<Map<String, dynamic>> pesananPenjual = [];
   late String token;
 
@@ -30,7 +32,7 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
           pesananPenjual = json
               .decode(response.body)
               .cast<Map<String, dynamic>>()
-              .where((pesanan) => pesanan['status'].toString() == '1')
+              .where((pesanan) => pesanan['status'].toString() != '1')
               .toList();
         });
       } else {
@@ -102,7 +104,7 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pesanan Masuk'),
+        title: Text('Riwayat Pesanan'),
       ),
       bottomNavigationBar: BottombarPenjual(),
       body: pesananPenjual.isEmpty

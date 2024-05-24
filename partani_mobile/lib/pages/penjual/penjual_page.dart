@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:partani_mobile/components/component%20penjual/bottombar_penjual.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
 import 'package:partani_mobile/user_login/login.dart';
-import 'manage_product.dart'; // Import halaman Manage Product
-import 'pesanan_page.dart'; // Import halaman Pesanan Page
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:partani_mobile/pages/penjual/manage_product.dart';
+import 'package:partani_mobile/pages/penjual/pesanan_page.dart';
+import 'package:partani_mobile/pages/penjual/riwayat_pesananpenjual.dart';
 
 class PenjualPage extends StatefulWidget {
   @override
@@ -16,6 +18,7 @@ class _PenjualPageState extends State<PenjualPage> {
   int _selectedIndex = 0;
   int _jumlahPesananMasuk = 0;
   int _jumlahPesananDikonfirmasi = 0;
+  late String token; // deklarasikan token
 
   @override
   void initState() {
@@ -31,7 +34,7 @@ class _PenjualPageState extends State<PenjualPage> {
 
   Future<void> _fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String token = prefs.getString('token') ?? '';
+    token = prefs.getString('token') ?? '';
 
     try {
       final masukResponse = await http.get(
@@ -60,37 +63,54 @@ class _PenjualPageState extends State<PenjualPage> {
     }
   }
 
-  void _logout(BuildContext context) {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
-      (Route<dynamic> route) => false,
-    );
+  Future<void> logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token') ?? '';
+
+    if (token.isNotEmpty) {
+      // Tambahkan pengecekan token sebelum logout
+      String apiUrl = 'http://10.0.2.2:8000/api/user/logout';
+      Map<String, String> headers = {
+        'Authorization': 'Bearer $token',
+      };
+
+      try {
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: headers,
+        );
+
+        if (response.statusCode == 200) {
+          prefs.remove('token');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+        } else {
+          print('Gagal logout: ${response.body}');
+        }
+      } catch (e) {
+        print('Error: $e');
+      }
+    }
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 1) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ManageProductPage()),
-        );
-      } else if (index == 2) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  PesananPenjualPage()), // Navigasi ke PesananPage
-        );
-      } else if (index == 3) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ProfilePage()), // Navigasi ke PesananPage
-        );
-      }
-    });
+  void _onCardTapped(int index) {
+    if (index == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PesananPenjualPage(),
+        ),
+      );
+    } else if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RiwayatPesananPenjualPage(),
+        ),
+      );
+    }
   }
 
   @override
@@ -101,51 +121,27 @@ class _PenjualPageState extends State<PenjualPage> {
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.logout),
-            onPressed: () => _logout(context),
+            onPressed: logout, // ubah onPressed menjadi logout()
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home,
-              color: Color(0xFF64AA54),
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business, color: Color(0xFF64AA54)),
-            label: 'Manajemen Produk',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt, color: Color(0xFF64AA54)),
-            label: 'Pesanan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: Color(0xFF64AA54)),
-            label: 'Profil',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFF64AA54),
-        onTap: _onItemTapped,
-      ),
+      bottomNavigationBar: BottombarPenjual(),
       body: GridView.count(
         crossAxisCount: 2,
         padding: EdgeInsets.all(16.0),
         mainAxisSpacing: 16.0,
         crossAxisSpacing: 16.0,
         children: <Widget>[
-          _buildCard('Pesanan yang baru masuk', _jumlahPesananMasuk.toString()),
           _buildCard(
-              'Pesanan dikonfirmasi', _jumlahPesananDikonfirmasi.toString()),
+              'Pesanan yang baru masuk', _jumlahPesananMasuk.toString(), 0),
+          _buildCard(
+              'Pesanan dikonfirmasi', _jumlahPesananDikonfirmasi.toString(), 1),
         ],
       ),
     );
   }
 
-  Widget _buildCard(String title, String subtitle) {
+  Widget _buildCard(String title, String subtitle, int index) {
     return Container(
       padding: EdgeInsets.all(8.0),
       decoration: BoxDecoration(
@@ -162,17 +158,19 @@ class _PenjualPageState extends State<PenjualPage> {
       ),
       child: Card(
         color: Colors.white, // set card color to white
-        child: Center(
-          child: ListTile(
-            title: Text(
-              title,
-              textAlign: TextAlign.center, // center align the title
+        child: InkWell(
+          onTap: () => _onCardTapped(index), // Navigasi ke halaman yang sesuai
+          child: Center(
+            child: ListTile(
+              title: Text(
+                title,
+                textAlign: TextAlign.center, // center align the title
+              ),
+              subtitle: Text(
+                subtitle,
+                textAlign: TextAlign.center, // center align the subtitle
+              ),
             ),
-            subtitle: Text(
-              subtitle,
-              textAlign: TextAlign.center, // center align the subtitle
-            ),
-            // Tambahkan onTap untuk menavigasi ke halaman detail pesanan jika diperlukan
           ),
         ),
       ),

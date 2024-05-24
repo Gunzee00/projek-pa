@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:partani_mobile/components/component%20penjual/bottombar_penjual.dart';
 import 'package:partani_mobile/pages/penjual/add_product.dart';
 import 'package:partani_mobile/pages/penjual/edit_product.dart';
 import 'package:partani_mobile/pages/penjual/pesanan_page.dart';
@@ -124,37 +125,12 @@ class _ManageProductPageState extends State<ManageProductPage> {
                 );
               },
             ),
+      bottomNavigationBar: BottombarPenjual(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _navigateToAddProductPage(context);
         },
         child: Icon(Icons.add),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home,
-              color: Color(0xFF64AA54),
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business, color: Color(0xFF64AA54)),
-            label: 'Manajemen Produk',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt, color: Color(0xFF64AA54)),
-            label: 'Pesanan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: Color(0xFF64AA54)),
-            label: 'Profil',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Color(0xFF64AA54),
-        onTap: _onItemTapped,
       ),
     );
   }
@@ -171,27 +147,5 @@ class _ManageProductPageState extends State<ManageProductPage> {
       context,
       MaterialPageRoute(builder: (context) => EditProductPage(productId)),
     );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-      if (index == 0) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PenjualPage()),
-        );
-      } else if (index == 2) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PesananPenjualPage()),
-        );
-      } else if (index == 3) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ProfilePage()),
-        );
-      }
-    });
   }
 }

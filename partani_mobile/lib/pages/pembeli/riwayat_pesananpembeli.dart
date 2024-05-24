@@ -4,15 +4,17 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class PesananPembeliPage extends StatefulWidget {
+class RiwayatPesananPembeliPage extends StatefulWidget {
   @override
-  _PesananPembeliPageState createState() => _PesananPembeliPageState();
+  _RiwayatPesananPembeliPageState createState() =>
+      _RiwayatPesananPembeliPageState();
 }
 
-class _PesananPembeliPageState extends State<PesananPembeliPage> {
+class _RiwayatPesananPembeliPageState extends State<RiwayatPesananPembeliPage> {
   List<Map<String, dynamic>> pesananPembeli = [];
   late String token;
-  bool isPesananDibatalkan = false;
+  bool isPesananDibatalkan =
+      false; // State untuk melacak apakah pesanan telah dibatalkan
 
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -26,17 +28,19 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {
-        List<Map<String, dynamic>> allPesanan =
-            json.decode(response.body).cast<Map<String, dynamic>>();
         setState(() {
-          pesananPembeli =
-              allPesanan.where((pesanan) => pesanan['status'] == '1').toList();
+          pesananPembeli = json
+              .decode(response.body)
+              .cast<Map<String, dynamic>>()
+              .where((pesanan) => pesanan['status'].toString() != '1')
+              .toList();
         });
       } else {
         throw Exception('Failed to load data');
       }
     } catch (e) {
       print('Error: $e');
+      // Tambahkan penanganan kesalahan jika diperlukan
     }
   }
 
@@ -52,15 +56,19 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
         headers: {'Authorization': 'Bearer $token'},
       );
       if (response.statusCode == 200) {
+        // Pesanan berhasil dibatalkan, perbarui state
         setState(() {
           isPesananDibatalkan = true;
         });
+        // Pesanan berhasil dibatalkan, lakukan sesuatu jika diperlukan
+        // Misalnya, muat ulang data pesanan atau tampilkan pesan sukses
         fetchData(); // Memuat ulang data pesanan setelah pembatalan
       } else {
         throw Exception('Gagal membatalkan pesanan');
       }
     } catch (e) {
       print('Error: $e');
+      // Tambahkan penanganan kesalahan jika diperlukan
     }
   }
 
@@ -81,6 +89,7 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
               Text('Status: ${_getStatusText(pesanan['status'])}'),
               Text('Alamat Pengirim: ${(pesanan['alamat_penjual'])}'),
               // Text('Nomor Penjual: ${pesanan['nomor_telepon_penjual']}'),
+              // Add other necessary information as needed
             ],
           ),
           actions: <Widget>[
@@ -94,12 +103,14 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
               onPressed: () {
                 String phoneNumber = pesanan['nomor_telepon_penjual'];
                 final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+
                 launchUrl(whatsApp);
+                // Construct the WhatsApp message with the seller's phone number
               },
               icon: Icon(
                 Icons.chat,
                 color: Colors.green,
-              ),
+              ), // Add your desired chat icon
             ),
           ],
         );
@@ -130,7 +141,8 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
               itemCount: pesananPembeli.length,
               itemBuilder: (BuildContext context, int index) {
                 final pesanan = pesananPembeli[index];
-                final penjual = pesanan['penjual'];
+                final penjual = pesanan[
+                    'penjual']; // Ubah sesuai dengan key nama penjual dalam respons API
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,8 +150,8 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.grey[200], // Warna latar belakang pemisah
+                        borderRadius: BorderRadius.circular(8), // Radius field
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -150,7 +162,8 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
                       margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       child: ListTile(
                         onTap: () {
-                          _showPesananDetail(pesanan);
+                          _showPesananDetail(
+                              pesanan); // Tampilkan detail pesanan saat pesanan ditekan
                         },
                         leading: Image.asset(
                           'assets/images/image.jpeg',
@@ -165,41 +178,6 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
                           'Status: ${_getStatusText(pesanan['status'])}',
                         ),
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        final idPesanan = pesanan['id_pesanan'];
-                        if (idPesanan != null) {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text('Konfirmasi Pembatalan Pesanan'),
-                                content: Text(
-                                    'Yakin ingin membatalkan pesanan ini?'),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('Batal'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      batalkanPesanan(idPesanan);
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('Ya'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        } else {
-                          print('ID pesanan tidak tersedia');
-                        }
-                      },
-                      child: Text('Batalkan Pesanan'),
                     ),
                   ],
                 );
