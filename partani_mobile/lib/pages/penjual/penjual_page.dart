@@ -19,6 +19,7 @@ class _PenjualPageState extends State<PenjualPage> {
   int _jumlahPesananMasuk = 0;
   int _jumlahPesananDikonfirmasi = 0;
   late String token; // deklarasikan token
+  Map<String, dynamic>? userInfo; // Deklarasikan variabel userInfo
 
   @override
   void initState() {
@@ -60,6 +61,27 @@ class _PenjualPageState extends State<PenjualPage> {
       }
     } catch (error) {
       print("Error fetching data: $error");
+    }
+  }
+
+  Future<void> _fetchProfile() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String authToken = prefs.getString('token') ?? '';
+
+    final url = Uri.parse('http://10.0.2.2:8000/api/user/profile');
+    final response = await http.get(
+      url,
+      headers: <String, String>{
+        'Authorization': 'Bearer $authToken', // Mengirim token di header
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        userInfo = json.decode(response.body);
+      });
+    } else {
+      print("Gagal menampilkan profil");
     }
   }
 
@@ -126,16 +148,29 @@ class _PenjualPageState extends State<PenjualPage> {
         ],
       ),
       bottomNavigationBar: BottombarPenjual(),
-      body: GridView.count(
-        crossAxisCount: 2,
-        padding: EdgeInsets.all(16.0),
-        mainAxisSpacing: 16.0,
-        crossAxisSpacing: 16.0,
-        children: <Widget>[
-          _buildCard(
-              'Pesanan yang baru masuk', _jumlahPesananMasuk.toString(), 0),
-          _buildCard(
-              'Pesanan dikonfirmasi', _jumlahPesananDikonfirmasi.toString(), 1),
+      body: Column(
+        children: [
+          SizedBox(height: 10), // Tambahkan SizedBox di sini untuk jarak
+          Expanded(
+            child: GridView.count(
+              crossAxisCount: 2,
+              padding: EdgeInsets.all(16.0),
+              mainAxisSpacing: 16.0,
+              crossAxisSpacing: 16.0,
+              children: <Widget>[
+                _buildCard(
+                  'Pesanan yang baru masuk',
+                  _jumlahPesananMasuk.toString(),
+                  0,
+                ),
+                _buildCard(
+                  'Pesanan dikonfirmasi',
+                  _jumlahPesananDikonfirmasi.toString(),
+                  1,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

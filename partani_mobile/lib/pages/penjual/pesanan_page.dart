@@ -221,7 +221,7 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
       case '2':
         return 'Pesanan Dibatalkan';
       case '3':
-        return 'Pesanan Diterima';
+        return 'Pesanan Dikonfirmasi Penjual';
       case '4':
         return 'Pesanan Ditolak Oleh Penjual';
       default:
