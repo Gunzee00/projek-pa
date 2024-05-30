@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -43,20 +42,7 @@ class _AddProductPageState extends State<AddProductPage> {
     String satuan = _satuanController.text.trim();
     String minOrder = _minOrderController.text.trim();
     String stock = _stockController.text.trim();
-    String lokasiProduk =
-        _lokasiprodukController.text.trim(); // Ambil nilai lokasi produk
-
-    String base64Image = '';
-
-    if (_image == null) {
-      // Set default image value if user hasn't selected any image
-      // You can provide your own default image path or use asset images
-      base64Image = 'default_image_path';
-    } else {
-      // Encode the image file to base64
-      List<int> imageBytes = await _image!.readAsBytes();
-      base64Image = base64Encode(imageBytes);
-    }
+    String lokasiProduk = _lokasiprodukController.text.trim();
 
     if (name.isEmpty ||
         price.isEmpty ||
@@ -64,39 +50,44 @@ class _AddProductPageState extends State<AddProductPage> {
         satuan.isEmpty ||
         minOrder.isEmpty ||
         stock.isEmpty ||
-        lokasiProduk.isEmpty) {
-      // Periksa apakah lokasi produk tidak kosong
-      _showErrorDialog("Semua kolom harus diisi");
+        lokasiProduk.isEmpty ||
+        _image == null) {
+      _showErrorDialog("Semua kolom harus diisi dan gambar harus dipilih");
       return;
     }
 
     try {
-      final response = await http.post(
-        Uri.parse(
-            'http://10.0.2.2:8000/api/create-produk'), // Ganti URL_API_STORE dengan URL API Anda
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode(<String, dynamic>{
-          'nama_produk': name,
-          'harga': price,
-          'gambar': base64Image,
-          'deskripsi': description,
-          'satuan': satuan,
-          'minimal_pemesanan': minOrder,
-          'stok': stock,
-          'lokasi_produk':
-              lokasiProduk, // Sertakan lokasi produk dalam body permintaan
-        }),
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('http://10.0.2.2:8000/api/create-produk'),
       );
+
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['nama_produk'] = name;
+      request.fields['harga'] = price;
+      request.fields['deskripsi'] = description;
+      request.fields['satuan'] = satuan;
+      request.fields['minimal_pemesanan'] = minOrder;
+      request.fields['stok'] = stock;
+      request.fields['lokasi_produk'] = lokasiProduk;
+
+      request.files.add(
+        await http.MultipartFile.fromPath('gambar', _image!.path),
+      );
+
+      var response = await request.send();
+      var responseString = await response.stream.bytesToString();
 
       if (response.statusCode == 201) {
         _showSuccessDialog();
       } else {
-        _showErrorDialog("Gagal menambahkan produk. Silakan coba lagi.");
+        print('Error: ${response.statusCode}');
+        print('Response: $responseString');
+        _showErrorDialog(
+            "Gagal menambahkan produk. Silakan coba lagi. \nStatus: ${response.statusCode}\nResponse: $responseString");
       }
     } catch (error) {
+      print('Error: $error');
       _showErrorDialog("Terjadi kesalahan: $error");
     }
   }
@@ -186,13 +177,12 @@ class _AddProductPageState extends State<AddProductPage> {
               controller: _lokasiprodukController,
               decoration: InputDecoration(
                 labelText: 'Lokasi Produk',
-                prefixIcon: Icon(Icons.attach_money),
+                prefixIcon: Icon(Icons.location_on),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide(color: Color(0xFF64AA54)),
                 ),
               ),
-              keyboardType: TextInputType.number,
             ),
             SizedBox(height: 12.0),
             TextFormField(
@@ -237,7 +227,6 @@ class _AddProductPageState extends State<AddProductPage> {
               controller: _descriptionController,
               decoration: InputDecoration(
                 labelText: 'Deskripsi',
-                // prefixIcon: Icon(Icons.description),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                   borderSide: BorderSide(color: Color(0xFF64AA54)),
@@ -253,7 +242,7 @@ class _AddProductPageState extends State<AddProductPage> {
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                height: 50,
+                height: 150,
                 child: _image == null
                     ? Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
                     : Image.file(_image!, fit: BoxFit.cover),
@@ -267,7 +256,8 @@ class _AddProductPageState extends State<AddProductPage> {
                 if (token != null) {
                   _addProduct(token);
                 } else {
-                  // Token belum tersedia, mungkin perlu proses autentikasi
+                  _showErrorDialog(
+                      "Token tidak ditemukan, silahkan login ulang.");
                 }
               },
               style: ElevatedButton.styleFrom(

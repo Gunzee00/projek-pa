@@ -137,48 +137,133 @@ class _PenjualPageState extends State<PenjualPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Penjual Page'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: logout, // ubah onPressed menjadi logout()
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottombarPenjual(),
-      body: Column(
-        children: [
-          SizedBox(height: 10), // Tambahkan SizedBox di sini untuk jarak
-          Expanded(
-            child: GridView.count(
-              crossAxisCount: 2,
-              padding: EdgeInsets.all(16.0),
-              mainAxisSpacing: 16.0,
-              crossAxisSpacing: 16.0,
-              children: <Widget>[
-                _buildCard(
-                  'Pesanan yang baru masuk',
-                  _jumlahPesananMasuk.toString(),
-                  0,
-                ),
-                _buildCard(
-                  'Pesanan dikonfirmasi',
-                  _jumlahPesananDikonfirmasi.toString(),
-                  1,
-                ),
-              ],
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Penjual Page'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: logout,
             ),
+          ],
+        ),
+        bottomNavigationBar: BottombarPenjual(),
+        body: Container(
+          padding: EdgeInsets.all(20.0), // padding untuk container utama
+          child: Column(
+            children: [
+              SizedBox(height: 10),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16.0,
+                  crossAxisSpacing: 16.0,
+                  children: <Widget>[
+                    _buildCard(
+                      'Pesanan yang baru masuk',
+                      _jumlahPesananMasuk.toString(),
+                      0,
+                    ),
+                    _buildCard(
+                      'Pesanan dikonfirmasi',
+                      _jumlahPesananDikonfirmasi.toString(),
+                      1,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                  height:
+                      10.0), // berikan jarak antara gridview dan kolom berikutnya
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ManageProductPage()),
+                  );
+                },
+                child: _SampleCard(
+                  cardName: 'Manajemen Produk',
+                  icon: Icons.dashboard_customize_sharp,
+                  iconColor: Color(0xFF64AA54),
+                ),
+              ),
+              SizedBox(height: 16.0), // Berikan jarak antara kartu
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => PesananPenjualPage()),
+                  );
+                },
+                child: _SampleCard(
+                  cardName: 'Pesanan',
+                  icon: Icons.receipt,
+                  iconColor: Color(0xFF64AA54),
+                ),
+              ),
+              SizedBox(height: 16.0), // Berikan jarak antara kartu
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => RiwayatPesananPenjualPage()),
+                  );
+                },
+                child: _SampleCard(
+                  cardName: 'Riwayat Pesanan',
+                  icon: Icons.history_sharp,
+                  iconColor: Color(0xFF64AA54),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildCard(String title, String subtitle, int index) {
+    return Card(
+      color: Colors.white, // set card color to white
+      child: InkWell(
+        onTap: () => _onCardTapped(index),
+        child: Center(
+          child: ListTile(
+            title: Text(
+              title,
+              textAlign: TextAlign.center,
+            ),
+            subtitle: Text(
+              subtitle,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SampleCard extends StatelessWidget {
+  const _SampleCard({
+    required this.cardName,
+    required this.icon,
+    required this.iconColor,
+  });
+  final String cardName;
+  final IconData icon;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(8.0),
+      width: double.infinity,
+      height: 100,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.0),
@@ -187,26 +272,27 @@ class _PenjualPageState extends State<PenjualPage> {
             color: Colors.grey.withOpacity(0.5),
             spreadRadius: 2,
             blurRadius: 5,
-            offset: Offset(0, 3), // changes position of shadow
+            offset: Offset(0, 3),
           ),
         ],
       ),
-      child: Card(
-        color: Colors.white, // set card color to white
-        child: InkWell(
-          onTap: () => _onCardTapped(index), // Navigasi ke halaman yang sesuai
-          child: Center(
-            child: ListTile(
-              title: Text(
-                title,
-                textAlign: TextAlign.center, // center align the title
-              ),
-              subtitle: Text(
-                subtitle,
-                textAlign: TextAlign.center, // center align the subtitle
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 40,
+              color: iconColor,
+            ),
+            SizedBox(height: 8.0),
+            Text(
+              cardName,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

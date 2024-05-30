@@ -82,19 +82,64 @@ class _KeranjangPageState extends State<KeranjangPage> {
   }
 
   Future<void> hapusBarangDariKeranjang(int idProduk) async {
-    final response = await http.delete(
-      Uri.parse('http://10.0.2.2:8000/api/keranjang/hapus-keranjang'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
+    // Tampilkan dialog konfirmasi
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Color(0xFFF3F3F3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+            side: BorderSide(
+                color: Colors.black), // Atur warna dan ketebalan stroke
+          ), // Set latar belakang dialog menjadi putih
+          title: Text("   "),
+          content: Text(
+            "Apakah kamu yakin ingin menghapus barang dari keranjang?",
+            textAlign: TextAlign.center, // Menjadikan teks berada di tengah
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(
+                "Tidak",
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(false); // Set nilai konfirmasi menjadi false
+              },
+            ),
+            TextButton(
+              child: Text(
+                "Ya",
+                style: TextStyle(color: Colors.black),
+              ),
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(true); // Set nilai konfirmasi menjadi true
+              },
+            ),
+          ],
+        );
       },
-      body: json.encode({'id_produk': idProduk}),
     );
 
-    if (response.statusCode == 200) {
-      fetchData();
-    } else {
-      print('Gagal menghapus');
+    // Hapus barang jika konfirmasi diterima
+    if (confirmDelete == true) {
+      final response = await http.delete(
+        Uri.parse('http://10.0.2.2:8000/api/keranjang/hapus-keranjang'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'id_produk': idProduk}),
+      );
+
+      if (response.statusCode == 200) {
+        fetchData();
+      } else {
+        print('Gagal menghapus');
+      }
     }
   }
 
@@ -183,23 +228,23 @@ class _KeranjangPageState extends State<KeranjangPage> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (isFirstItem) SizedBox(height: 16),
-                              if (isFirstItem)
-                                Container(
-                                  margin: EdgeInsets.symmetric(horizontal: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
-                                  child: Text(
-                                    'Penjual: ${item['penjual']}',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
+                              // if (isFirstItem) SizedBox(height: 16),
+                              // if (isFirstItem)
+                              // Container(
+                              //   margin: EdgeInsets.symmetric(horizontal: 8),
+                              //   decoration: BoxDecoration(
+                              //     color: Colors.grey[300],
+                              //     borderRadius: BorderRadius.circular(8),
+                              //   ),
+                              //   padding: EdgeInsets.symmetric(
+                              //       horizontal: 16, vertical: 8),
+                              //   child: Text(
+                              //     'Penjual: ${item['penjual']}',
+                              //     style: TextStyle(
+                              //         fontSize: 16,
+                              //         fontWeight: FontWeight.bold),
+                              //   ),
+                              // ),
                               GestureDetector(
                                 onTap: () {
                                   if (item['id_produk'] != null) {
@@ -218,8 +263,12 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                   }
                                 },
                                 child: Card(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  margin: const EdgeInsets.all(
+                                      10.0), // Menambahkan margin di sekitar Card
+
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
@@ -239,17 +288,12 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  item['nama_produk'],
+                                                  '${item['nama_produk']} ${item['jumlah']} ${item['satuan']}',
                                                   style: TextStyle(
                                                     fontSize: 18,
                                                   ),
                                                 ),
                                                 SizedBox(height: 8),
-                                                Text(
-                                                  '${item['jumlah']} ${item['satuan']}',
-                                                  style:
-                                                      TextStyle(fontSize: 16),
-                                                ),
                                                 SizedBox(height: 8),
                                                 Text(
                                                   'Rp.${item['total_harga']}',
@@ -280,18 +324,19 @@ class _KeranjangPageState extends State<KeranjangPage> {
                         },
                       ),
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                            padding: EdgeInsets.all(30.0),
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                          vertical: 20.0, horizontal: 30.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            flex: 2,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Total',
+                                  'Total Pembayaran',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -309,21 +354,14 @@ class _KeranjangPageState extends State<KeranjangPage> {
                               ],
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: 20.0,
-                              horizontal: 5.0,
-                            ),
+                          SizedBox(width: 20), // Tambahkan jarak antara widget
+                          Expanded(
                             child: ElevatedButton(
                               onPressed: () async {
                                 await buatPesananDariKeranjang(context);
                               },
                               style: ElevatedButton.styleFrom(
-                                padding: EdgeInsets.symmetric(
-                                  vertical: 15,
-                                ),
+                                padding: EdgeInsets.symmetric(vertical: 15),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(28),
                                 ),
@@ -333,8 +371,8 @@ class _KeranjangPageState extends State<KeranjangPage> {
                               child: Text('Buat Pesanan'),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 )

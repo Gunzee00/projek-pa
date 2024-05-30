@@ -69,36 +69,101 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white, // Set background color to white
           title: Text('Detail Pesanan'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Penjual: ${pesanan['penjual']}'),
-              Text('Nama Produk: ${pesanan['nama_produk']}'),
-              Text('Jumlah: ${pesanan['jumlah']} ${pesanan['satuan']}'),
-              Text('Total Harga: Rp. ${pesanan['total_harga']}'),
-              Text('Status: ${_getStatusText(pesanan['status'])}'),
-              Text('Alamat Pengirim: ${(pesanan['alamat_penjual'])}'),
-              // Text('Nomor Penjual: ${pesanan['nomor_telepon_penjual']}'),
-            ],
+          content: SingleChildScrollView(
+            // Added to prevent bottom overflow
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Nama Penjual')),
+                    Expanded(flex: 2, child: Text(': ${pesanan['penjual']}')),
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Alamat Pengirim')),
+                    Expanded(
+                        flex: 2, child: Text(': ${pesanan['alamat_penjual']}')),
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Nomor Telepon')),
+                    Expanded(
+                        flex: 2,
+                        child: Text(': ${pesanan['nomor_telepon_penjual']}')),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 1, child: Text('Status')),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        ': ${_getStatusText(pesanan['status'])}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                // Text(
+                //   'Status: ${_getStatusText(pesanan['status'])}',
+                //   style: TextStyle(fontWeight: FontWeight.bold),
+                // ),
+                SizedBox(height: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(
+                        5.0), // Optional: Adds rounded corners
+                  ),
+                  padding:
+                      EdgeInsets.all(10.0), // Adds padding inside the container
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Deskripsi Pesanan'),
+                      Divider(),
+                      Text('${pesanan['nama_produk']}'),
+                      Text(
+                          'Harga per ${pesanan['satuan']} = Rp. ${pesanan['harga']}'),
+                      Text(
+                          '${pesanan['harga']} x ${pesanan['jumlah']} = Rp. ${pesanan['total_harga']}'),
+                      Divider(),
+                      Text('Total =  Rp. ${pesanan['total_harga']}',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Tutup'),
-            ),
-            IconButton(
-              onPressed: () {
-                String phoneNumber = pesanan['nomor_telepon_penjual'];
-                final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
-                launchUrl(whatsApp);
-              },
-              icon: Icon(
-                Icons.chat,
-                color: Colors.green,
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  String phoneNumber = pesanan['nomor_telepon_penjual'];
+                  final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+                  launchUrl(whatsApp);
+                },
+                icon: Icon(
+                  Icons.chat,
+                  color: Colors.white,
+                ),
+                label: Text('Hubungi Penjual Sekarang'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Color(0xFF64AA54), // Text color
+                ),
               ),
             ),
           ],
@@ -138,7 +203,7 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: const Color.fromARGB(255, 255, 255, 255),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -147,60 +212,88 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
                       ),
                     ),
                     Card(
+                      color: Color.fromARGB(255, 255, 255, 255),
                       margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      child: ListTile(
-                        onTap: () {
-                          _showPesananDetail(pesanan);
-                        },
-                        leading: Image.asset(
-                          'assets/images/image.jpeg',
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                        title: Text(pesanan['nama_produk'] ?? ''),
-                        subtitle: Text(
-                          'Total Harga: Rp. ${pesanan['total_harga']}\n'
-                          'Jumlah Pesanan:  ${pesanan['jumlah']} ${pesanan['satuan']}\n'
-                          'Status: ${_getStatusText(pesanan['status'])}',
-                        ),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        final idPesanan = pesanan['id_pesanan'];
-                        if (idPesanan != null) {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text('Konfirmasi Pembatalan Pesanan'),
-                                content: Text(
-                                    'Yakin ingin membatalkan pesanan ini?'),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('Batal'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      batalkanPesanan(idPesanan);
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: Text('Ya'),
-                                  ),
-                                ],
-                              );
+                      child: Column(
+                        children: [
+                          ListTile(
+                            onTap: () {
+                              _showPesananDetail(pesanan);
                             },
-                          );
-                        } else {
-                          print('ID pesanan tidak tersedia');
-                        }
-                      },
-                      child: Text('Batalkan Pesanan'),
-                    ),
+                            leading: Image.asset(
+                              'assets/images/image.jpeg',
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(pesanan['nama_produk'] ?? ''),
+                            subtitle: Text(
+                                '\n Total Harga: Rp. ${pesanan['total_harga']}\n'
+                                'Jumlah Pesanan:  ${pesanan['jumlah']} ${pesanan['satuan']}\n'
+                                // 'Status: ${_getStatusText(pesanan['status'])}',
+                                ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Row(
+                              children: [
+                                TextButton(
+                                  onPressed: () {
+                                    final idPesanan = pesanan['id_pesanan'];
+                                    if (idPesanan != null) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: Text(
+                                                'Konfirmasi Pembatalan Pesanan'),
+                                            content: Text(
+                                                'Yakin ingin membatalkan pesanan ini?'),
+                                            actions: <Widget>[
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text('Batal'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  batalkanPesanan(idPesanan);
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text('Ya'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    } else {
+                                      print('ID pesanan tidak tersedia');
+                                    }
+                                  },
+                                  child: Text(
+                                    'Batalkan Pesanan',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ),
+                                Spacer(),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _showPesananDetail(pesanan);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    backgroundColor:
+                                        Color(0xFF64AA54), // Text color
+                                  ),
+                                  child: Text('Detail'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 );
               },

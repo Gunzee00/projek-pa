@@ -13,8 +13,6 @@ class RiwayatPesananPembeliPage extends StatefulWidget {
 class _RiwayatPesananPembeliPageState extends State<RiwayatPesananPembeliPage> {
   List<Map<String, dynamic>> pesananPembeli = [];
   late String token;
-  bool isPesananDibatalkan =
-      false; // State untuk melacak apakah pesanan telah dibatalkan
 
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -44,73 +42,107 @@ class _RiwayatPesananPembeliPageState extends State<RiwayatPesananPembeliPage> {
     }
   }
 
-  Future<void> batalkanPesanan(int idPesanan) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String token = prefs.getString('token') ?? '';
-
-    String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/batalkan/$idPesanan'; // Sesuaikan dengan URL yang benar
-    try {
-      final response = await http.put(
-        Uri.parse(apiUrl),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      if (response.statusCode == 200) {
-        // Pesanan berhasil dibatalkan, perbarui state
-        setState(() {
-          isPesananDibatalkan = true;
-        });
-        // Pesanan berhasil dibatalkan, lakukan sesuatu jika diperlukan
-        // Misalnya, muat ulang data pesanan atau tampilkan pesan sukses
-        fetchData(); // Memuat ulang data pesanan setelah pembatalan
-      } else {
-        throw Exception('Gagal membatalkan pesanan');
-      }
-    } catch (e) {
-      print('Error: $e');
-      // Tambahkan penanganan kesalahan jika diperlukan
-    }
-  }
-
   void _showPesananDetail(Map<String, dynamic> pesanan) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white, // Set background color to white
           title: Text('Detail Pesanan'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Penjual: ${pesanan['penjual']}'),
-              Text('Nama Produk: ${pesanan['nama_produk']}'),
-              Text('Jumlah: ${pesanan['jumlah']} ${pesanan['satuan']}'),
-              Text('Total Harga: Rp. ${pesanan['total_harga']}'),
-              Text('Status: ${_getStatusText(pesanan['status'])}'),
-              Text('Alamat Pengirim: ${(pesanan['alamat_penjual'])}'),
-              // Text('Nomor Penjual: ${pesanan['nomor_telepon_penjual']}'),
-              // Add other necessary information as needed
-            ],
+          content: SingleChildScrollView(
+            // Added to prevent bottom overflow
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Nama Penjual')),
+                    Expanded(flex: 2, child: Text(': ${pesanan['penjual']}')),
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Alamat Pengirim')),
+                    Expanded(
+                        flex: 2, child: Text(': ${pesanan['alamat_penjual']}')),
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Nomor Telepon')),
+                    Expanded(
+                        flex: 2,
+                        child: Text(': ${pesanan['nomor_telepon_penjual']}')),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 1, child: Text('Status')),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        ': ${_getStatusText(pesanan['status'])}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                // Text(
+                //   'Status: ${_getStatusText(pesanan['status'])}',
+                //   style: TextStyle(fontWeight: FontWeight.bold),
+                // ),
+                SizedBox(height: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(
+                        5.0), // Optional: Adds rounded corners
+                  ),
+                  padding:
+                      EdgeInsets.all(10.0), // Adds padding inside the container
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Deskripsi Pesanan'),
+                      Divider(),
+                      Text('${pesanan['nama_produk']}'),
+                      Text(
+                          'Harga per ${pesanan['satuan']} = Rp. ${pesanan['harga']}'),
+                      Text(
+                          '${pesanan['harga']} x ${pesanan['jumlah']} = Rp. ${pesanan['total_harga']}'),
+                      Divider(),
+                      Text('Total =  Rp. ${pesanan['total_harga']}',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Tutup'),
-            ),
-            IconButton(
-              onPressed: () {
-                String phoneNumber = pesanan['nomor_telepon_penjual'];
-                final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
-
-                launchUrl(whatsApp);
-                // Construct the WhatsApp message with the seller's phone number
-              },
-              icon: Icon(
-                Icons.chat,
-                color: Colors.green,
-              ), // Add your desired chat icon
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  String phoneNumber = pesanan['nomor_telepon_penjual'];
+                  final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+                  launchUrl(whatsApp);
+                },
+                icon: Icon(
+                  Icons.chat,
+                  color: Colors.white,
+                ),
+                label: Text('Hubungi Penjual Sekarang'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Color(0xFF64AA54), // Text color
+                ),
+              ),
             ),
           ],
         );
@@ -128,7 +160,7 @@ class _RiwayatPesananPembeliPageState extends State<RiwayatPesananPembeliPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pesanan Saya'),
+        title: Text('Riwayat Pesanan'),
       ),
       body: pesananPembeli.isEmpty
           ? Center(
@@ -141,8 +173,6 @@ class _RiwayatPesananPembeliPageState extends State<RiwayatPesananPembeliPage> {
               itemCount: pesananPembeli.length,
               itemBuilder: (BuildContext context, int index) {
                 final pesanan = pesananPembeli[index];
-                final penjual = pesanan[
-                    'penjual']; // Ubah sesuai dengan key nama penjual dalam respons API
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,26 +189,30 @@ class _RiwayatPesananPembeliPageState extends State<RiwayatPesananPembeliPage> {
                       ),
                     ),
                     Card(
+                      color: Color.fromARGB(255, 255, 255, 255),
                       margin: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      child: ListTile(
-                        onTap: () {
-                          _showPesananDetail(
-                              pesanan); // Tampilkan detail pesanan saat pesanan ditekan
-                        },
-                        leading: Image.asset(
-                          'assets/images/image.jpeg',
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                        title: Text(pesanan['nama_produk'] ?? ''),
-                        subtitle: Text(
-                          'Total Harga: Rp. ${pesanan['total_harga']}\n'
-                          'Jumlah Pesanan:  ${pesanan['jumlah']} ${pesanan['satuan']}\n'
-                          'Status: ${_getStatusText(pesanan['status'])}',
-                        ),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            onTap: () {
+                              _showPesananDetail(pesanan);
+                            },
+                            leading: Image.asset(
+                              'assets/images/image.jpeg',
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                            ),
+                            title: Text(pesanan['nama_produk'] ?? ''),
+                            subtitle: Text(
+                              'Total Harga: Rp. ${pesanan['total_harga']}\n'
+                              'Jumlah Pesanan: ${pesanan['jumlah']} ${pesanan['satuan']}\n'
+                              'Status: ${_getStatusText(pesanan['status'])}',
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    )
                   ],
                 );
               },

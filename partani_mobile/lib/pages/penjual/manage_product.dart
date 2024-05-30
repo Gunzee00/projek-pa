@@ -4,10 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:partani_mobile/components/component%20penjual/bottombar_penjual.dart';
 import 'package:partani_mobile/pages/penjual/add_product.dart';
 import 'package:partani_mobile/pages/penjual/edit_product.dart';
-import 'package:partani_mobile/pages/penjual/pesanan_page.dart';
-import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
-import 'package:partani_mobile/pages/penjual/penjual_page.dart'; // Import PenjualPage
-import 'package:partani_mobile/user_login/login.dart';
+// import 'package:partani_mobile/pages/penjual/pesanan_page.dart';
+// import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
+// import 'package:partani_mobile/pages/penjual/penjual_page.dart'; // Import PenjualPage
+// import 'package:partani_mobile/user_login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageProductPage extends StatefulWidget {
@@ -17,7 +17,7 @@ class ManageProductPage extends StatefulWidget {
 
 class _ManageProductPageState extends State<ManageProductPage> {
   List<dynamic> _produks = [];
-  int _selectedIndex = 1; // Set index for bottom bar
+  // int _selectedIndex = 1; // Set index for bottom bar
 
   @override
   void initState() {

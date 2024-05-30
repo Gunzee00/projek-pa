@@ -40,22 +40,69 @@ class ProdukController extends Controller
 
     
 
-    public function store(Request $request)
+//     public function store(Request $request)
+// {
+//     $userId = auth()->user()->id;
+//     $validator = Validator::make($request->all(), [
+//         'nama_produk' => 'required',
+//         'harga' => 'required',
+//         'gambar' => 'required',
+//         'deskripsi' => 'required',
+//         'satuan' => 'required',
+//         'lokasi_produk' => 'required',
+//         'minimal_pemesanan' => 'required|numeric',
+//         'stok' => 'required|numeric',
+//     ]); 
+
+//     if ($validator->fails()) {
+//         return response()->json(['errors' => $validator->errors()], 400);
+//     }
+
+//     // Mendapatkan nama penjual
+//     $namaPenjual = auth()->user()->nama_lengkap;
+//     // Mendapatkan nomor telepon penjual
+//     $nomorPenjual = auth()->user()->nomor_telepon;
+
+//     $formData = $request->all();
+//     $formData['id_pembuat'] = $userId;
+//     $formData['nama_penjual'] = $namaPenjual; // Menambahkan nama penjual ke dalam data
+//     $formData['nomor_penjual'] = $nomorPenjual; // Menambahkan nomor telepon penjual ke dalam data
+
+//     // Mengecek apakah jumlah yang diminta memenuhi persyaratan minimal pemesanan
+//     if ($formData['minimal_pemesanan'] > 0 && $formData['minimal_pemesanan'] > $formData['stok']) {
+//         return response()->json(['message' => 'Jumlah minimal pemesanan tidak boleh melebihi stok yang tersedia.'], 400);
+//     }
+
+//     $form = Produk::create($formData);
+
+//     return response()->json(['message' => 'Form created successfully', 'data' => $form], 201);
+// }
+
+public function store(Request $request)
 {
     $userId = auth()->user()->id;
     $validator = Validator::make($request->all(), [
         'nama_produk' => 'required',
         'harga' => 'required',
-        'gambar' => 'required',
+        'gambar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         'deskripsi' => 'required',
         'satuan' => 'required',
         'lokasi_produk' => 'required',
         'minimal_pemesanan' => 'required|numeric',
         'stok' => 'required|numeric',
-    ]); 
+    ]);
 
     if ($validator->fails()) {
         return response()->json(['errors' => $validator->errors()], 400);
+    }
+
+    // Handle the image upload
+    if ($request->hasFile('gambar')) {
+        $image = $request->file('gambar');
+        $imageName = uniqid().'.'.$image->getClientOriginalExtension();
+        $image->move(public_path('images'), $imageName);
+    } else {
+        return response()->json(['message' => 'Gambar produk diperlukan'], 400);
     }
 
     // Mendapatkan nama penjual
@@ -67,6 +114,7 @@ class ProdukController extends Controller
     $formData['id_pembuat'] = $userId;
     $formData['nama_penjual'] = $namaPenjual; // Menambahkan nama penjual ke dalam data
     $formData['nomor_penjual'] = $nomorPenjual; // Menambahkan nomor telepon penjual ke dalam data
+    $formData['gambar'] = $imageName; // Store the image name in the database
 
     // Mengecek apakah jumlah yang diminta memenuhi persyaratan minimal pemesanan
     if ($formData['minimal_pemesanan'] > 0 && $formData['minimal_pemesanan'] > $formData['stok']) {
@@ -77,6 +125,8 @@ class ProdukController extends Controller
 
     return response()->json(['message' => 'Form created successfully', 'data' => $form], 201);
 }
+
+
 
     //delete product
     

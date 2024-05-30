@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+// import 'package:flutter/url_launcher.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final dynamic product;
@@ -208,37 +209,37 @@ class ProductDetailPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius:
-                            BorderRadius.circular(10), // Menambahkan radius
-                        color: Colors.grey[200], // Memberi warna latar belakang
-                      ),
-                      padding: EdgeInsets.all(
-                          10), // Memberi padding agar konten tidak terlalu dekat dengan tepi
-                      child: SizedBox(
-                        width: double.infinity, // Menggunakan lebar maksimal
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.person,
-                              color: Color.fromARGB(
-                                  255, 73, 73, 73), // Warna ikon person
-                            ),
-                            SizedBox(
-                                width:
-                                    10), // Memberi jarak antara ikon dan teks
-                            Text(
-                              '${product['nama_penjual']}',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Container(
+                    //   decoration: BoxDecoration(
+                    //     borderRadius:
+                    //         BorderRadius.circular(10), // Menambahkan radius
+                    //     color: Colors.grey[200], // Memberi warna latar belakang
+                    //   ),
+                    //   padding: EdgeInsets.all(
+                    //       10), // Memberi padding agar konten tidak terlalu dekat dengan tepi
+                    //   child: SizedBox(
+                    //     width: double.infinity, // Menggunakan lebar maksimal
+                    //     child: Row(
+                    //       children: [
+                    //         Icon(
+                    //           Icons.person,
+                    //           color: Color.fromARGB(
+                    //               255, 73, 73, 73), // Warna ikon person
+                    //         ),
+                    //         SizedBox(
+                    //             width:
+                    //                 10), // Memberi jarak antara ikon dan teks
+                    //         Text(
+                    //           '${product['nama_penjual']}',
+                    //           style: TextStyle(
+                    //             fontSize: 18,
+                    //             fontWeight: FontWeight.bold,
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
 
                     SizedBox(height: 10),
                     // Container untuk deskripsi produk

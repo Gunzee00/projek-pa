@@ -173,46 +173,108 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          backgroundColor: Colors.white, // Set background color to white
           title: Text('Detail Pesanan'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Pembeli: ${pesanan['pembeli']}'),
-              Text('Nama Produk: ${pesanan['nama_produk']}'),
-              Text(
-                  'Jumlah: ${pesanan['jumlah'].toString()} ${pesanan['satuan']}'),
-              Text('Total Harga: Rp. ${pesanan['total_harga'].toString()}'),
-              Text('Status: ${_getStatusText(pesanan['status'].toString())}'),
-              Text('Alamat Pembeli: ${(pesanan['alamat_pembeli'])}'),
-              // Tambahkan informasi lainnya sesuai kebutuhan
-            ],
+          content: SingleChildScrollView(
+            // Added to prevent bottom overflow
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Nama Pembeli')),
+                    Expanded(flex: 2, child: Text(': ${pesanan['penjual']}')),
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Alamat Penjual')),
+                    Expanded(
+                        flex: 2, child: Text(': ${pesanan['alamat_pembeli']}')),
+                  ],
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 2, child: Text('Nomor Telepon')),
+                    Expanded(
+                        flex: 2,
+                        child: Text(': ${pesanan['nomor_telepon_pembeli']}')),
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(flex: 1, child: Text('Status')),
+                    Expanded(
+                      flex: 1,
+                      child: Text(
+                        ': ${_getStatusText(pesanan['status'])}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                // Text(
+                //   'Status: ${_getStatusText(pesanan['status'])}',
+                //   style: TextStyle(fontWeight: FontWeight.bold),
+                // ),
+                SizedBox(height: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(
+                        5.0), // Optional: Adds rounded corners
+                  ),
+                  padding:
+                      EdgeInsets.all(10.0), // Adds padding inside the container
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Deskripsi Pesanan'),
+                      Divider(),
+                      Text('${pesanan['nama_produk']}'),
+                      Text(
+                          'Harga per ${pesanan['satuan']} = Rp. ${pesanan['harga']}'),
+                      Text(
+                          '${pesanan['harga']} x ${pesanan['jumlah']} = Rp. ${pesanan['total_harga']}'),
+                      Divider(),
+                      Text('Total =  Rp. ${pesanan['total_harga']}',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
           actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Tutup'),
-            ),
-            IconButton(
-              onPressed: () {
-                // Construct the WhatsApp message with the seller's phone number
-                String phoneNumber = pesanan['nomor_telepon_pembeli'];
-                final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
-
-                launchUrl(whatsApp);
-              },
-              icon: Icon(
-                Icons.chat,
-                color: Colors.green,
-              ), // Add your desired chat icon
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  String phoneNumber = pesanan['nomor_telepon_pembeli'];
+                  final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+                  launchUrl(whatsApp);
+                },
+                icon: Icon(
+                  Icons.chat,
+                  color: Colors.white,
+                ),
+                label: Text('Hubungi Pembeli Sekarang'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Color(0xFF64AA54), // Text color
+                ),
+              ),
             ),
           ],
         );
       },
     );
-  } // Function to launch WhatsApp with a predefined message
+  }
 
   String _getStatusText(String status) {
     switch (status) {

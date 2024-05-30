@@ -29,7 +29,7 @@ class BottombarPenjual extends StatelessWidget {
             ),
             IconButton(
               icon: Icon(
-                Icons.shopping_cart,
+                Icons.dashboard_customize_sharp,
                 color: Colors.white,
               ),
               iconSize: 30,
