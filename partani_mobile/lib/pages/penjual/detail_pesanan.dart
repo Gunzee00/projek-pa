@@ -1,9 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:partani_mobile/user_login/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class DetailPesananPage extends StatelessWidget {
+class DetailPesananPage extends StatefulWidget {
   final Map<String, dynamic> pesanan;
 
   DetailPesananPage({required this.pesanan});
+
+  @override
+  _DetailPesananPageState createState() => _DetailPesananPageState();
+}
+
+class _DetailPesananPageState extends State<DetailPesananPage> {
+  late String token = '';
+  late String role = '';
+
+  @override
+  void initState() {
+    super.initState();
+    initializeTokenAndRole();
+  }
+
+  Future<void> initializeTokenAndRole() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? '';
+      role = prefs.getString('role') ?? '';
+      if (role != 'penjual') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,24 +47,24 @@ class DetailPesananPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Status: ${_getStatusText(pesanan['status'])}',
+              'Status: ${_getStatusText(widget.pesanan['status'])}',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
-            Text('Jumlah: ${pesanan['jumlah']}'),
+            Text('Jumlah: ${widget.pesanan['jumlah']}'),
             SizedBox(height: 10),
-            Text('Nama Produk: ${pesanan['nama_produk']}'),
+            Text('Nama Produk: ${widget.pesanan['nama_produk']}'),
             SizedBox(height: 10),
-            Text('Satuan: ${pesanan['satuan']}'),
+            Text('Satuan: ${widget.pesanan['satuan']}'),
             SizedBox(height: 10),
-            Text('Harga: Rp. ${pesanan['harga']}'),
+            Text('Harga: Rp. ${widget.pesanan['harga']}'),
             SizedBox(height: 10),
-            Text('Total Harga: Rp. ${pesanan['total_harga']}'),
+            Text('Total Harga: Rp. ${widget.pesanan['total_harga']}'),
             SizedBox(height: 10),
-            Text('Pembeli: ${pesanan['pembeli']}'),
+            Text('Pembeli: ${widget.pesanan['pembeli']}'),
             SizedBox(height: 10),
             Image.network(
-              pesanan['gambar'], // URL gambar
+              widget.pesanan['gambar'], // URL gambar
               width: 200,
               height: 200,
               fit: BoxFit.cover,

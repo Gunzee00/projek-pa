@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('user/login', [LoginController::class, 'loginApi']);
 Route::post('user/register', [RegisterController::class, 'registerApi']);
+Route::post('user/check_unique', [RegisterController::class, 'checkUnique']);
+
 // Route::resource('pelaporan-masyarakat-ke-dinas', PelaporanKeDinasController::class)->middleware('auth:sanctum');
 // Route::resource('pelaporan-masyarakat-ke-polisi', PelaporanKePolisiController::class)->middleware('auth:sanctum');
 // Route::middleware('auth:sanctum')->get('/user/profile', function (Request $request) {
@@ -49,11 +51,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     //show produk berdasarkan pembuat
     Route::get('/produk', [ProdukController::class, 'index']);
     //create produk
-     Route::post('/create-produk', [ProdukController::class, 'store']);
+        Route::post('/create-produk', [ProdukController::class, 'store']);
      //hapus produk
     Route::delete('/delete-produk/{id}', [ProdukController::class, 'delete']);
     //update produk
     Route::put('/update-produk/{id}', [ProdukController::class, 'update']);
+    Route::get('/produk/{id}', [ProdukController::class, 'show']);
 
 
     //-------------------------------Keranjang-----------------------------//
@@ -64,7 +67,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     //hapus isi keranjang
     Route::delete('/keranjang/hapus-keranjang', [KeranjangController::class, 'hapusKeranjang']);
     //update isi keranjang
-    Route::put('/keranjang/update-keranjang', [KeranjangController::class, 'updateJumlahKeranjang']);
+    Route::put('/keranjang/{id_produk}', [KeranjangController::class, 'updateKeranjang']);
     //detail produk di keranjang
     Route::get('/keranjang/detail', [KeranjangController::class, 'detailKeranjang']);
 
@@ -101,7 +104,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/pesanan/count/dikonfirmasi', [PesananController::class, 'countPesananDikonfirmasi']);
 
 
-
-     
+//image
+ 
 
 });

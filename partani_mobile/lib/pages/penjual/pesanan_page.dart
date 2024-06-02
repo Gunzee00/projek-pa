@@ -19,7 +19,7 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
     token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/penjual'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/penjual'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -47,7 +47,7 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
     String token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/konfirmasi/$idPesanan'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/konfirmasi/$idPesanan'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -72,7 +72,7 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
     String token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/tolak/$idPesanan'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/tolak/$idPesanan'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.put(
         Uri.parse(apiUrl),
@@ -219,10 +219,6 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
                     ),
                   ],
                 ),
-                // Text(
-                //   'Status: ${_getStatusText(pesanan['status'])}',
-                //   style: TextStyle(fontWeight: FontWeight.bold),
-                // ),
                 SizedBox(height: 20),
                 Container(
                   decoration: BoxDecoration(

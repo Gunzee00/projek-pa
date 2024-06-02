@@ -13,13 +13,23 @@ class KeranjangPage extends StatefulWidget {
 class _KeranjangPageState extends State<KeranjangPage> {
   List<Map<String, dynamic>> keranjangData = [];
   String? token;
-  String placeholderImageUrl = 'assets/images/image.jpeg';
   bool isAuthenticated = true; // Add an authentication flag
 
   @override
   void initState() {
     super.initState();
+    initializeTokenAndRole();
     fetchData();
+  }
+
+  Future<void> initializeTokenAndRole() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? '';
+      if (token!.isEmpty) {
+        isAuthenticated = false;
+      }
+    });
   }
 
   Future<void> fetchData() async {
@@ -27,48 +37,11 @@ class _KeranjangPageState extends State<KeranjangPage> {
     token = prefs.getString('token') ?? '';
 
     if (token!.isEmpty) {
-      // Set authentication flag if token is empty
-      setState(() {
-        isAuthenticated = false;
-      });
-
-      // Show dialog if token is empty
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Peringatan"),
-              content: Text("Kamu harus melakukan autentikasi dahulu."),
-              actions: <Widget>[
-                // Button to go to the login page
-                TextButton(
-                  child: Text("Login"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
-                  },
-                ),
-                // Button to close the popup
-                TextButton(
-                  child: Text("Close"),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        );
-      });
-      return; // Stop further execution if token is empty
+      return;
     }
 
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/api/keranjang'),
+      Uri.parse('https://projek.cloud/api/keranjang'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -127,7 +100,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
     // Hapus barang jika konfirmasi diterima
     if (confirmDelete == true) {
       final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/api/keranjang/hapus-keranjang'),
+        Uri.parse('https://projek.cloud/api/keranjang/hapus-keranjang'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -145,7 +118,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
 
   Future<void> buatPesananDariKeranjang(BuildContext context) async {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/api/pesanan/buat-pesanan'),
+      Uri.parse('https://projek.cloud/api/pesanan/buat-pesanan'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -228,40 +201,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // if (isFirstItem) SizedBox(height: 16),
-                              // if (isFirstItem)
-                              // Container(
-                              //   margin: EdgeInsets.symmetric(horizontal: 8),
-                              //   decoration: BoxDecoration(
-                              //     color: Colors.grey[300],
-                              //     borderRadius: BorderRadius.circular(8),
-                              //   ),
-                              //   padding: EdgeInsets.symmetric(
-                              //       horizontal: 16, vertical: 8),
-                              //   child: Text(
-                              //     'Penjual: ${item['penjual']}',
-                              //     style: TextStyle(
-                              //         fontSize: 16,
-                              //         fontWeight: FontWeight.bold),
-                              //   ),
-                              // ),
                               GestureDetector(
-                                onTap: () {
-                                  if (item['id_produk'] != null) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ProductDetailPage(
-                                          product: {
-                                            'id_produk': item['id_produk'],
-                                          },
-                                        ),
-                                      ),
-                                    );
-                                  } else {
-                                    print('ID produk tidak tersedia');
-                                  }
-                                },
                                 child: Card(
                                   color: Color.fromARGB(255, 255, 255, 255),
                                   margin: const EdgeInsets.all(
@@ -276,10 +216,22 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                       padding: EdgeInsets.all(8.0),
                                       child: Row(
                                         children: [
-                                          Image.asset(
-                                            placeholderImageUrl,
+                                          FadeInImage.assetNetwork(
+                                            placeholder:
+                                                'assets/images/dummy.png',
+                                            image: item['gambar'] ?? '',
                                             width: 100,
                                             height: 100,
+                                            fit: BoxFit.cover,
+                                            imageErrorBuilder:
+                                                (context, error, stackTrace) {
+                                              return Image.asset(
+                                                'assets/images/dummy.png',
+                                                width: 100,
+                                                height: 100,
+                                                fit: BoxFit.cover,
+                                              );
+                                            },
                                           ),
                                           SizedBox(width: 16),
                                           Expanded(
@@ -309,8 +261,17 @@ class _KeranjangPageState extends State<KeranjangPage> {
                                           IconButton(
                                             icon: Icon(Icons.delete),
                                             onPressed: () {
-                                              hapusBarangDariKeranjang(
+                                              // Mengonversi id_produk menjadi int menggunakan int.tryParse
+                                              int? idProduk = int.tryParse(
                                                   item['id_produk']);
+                                              if (idProduk != null) {
+                                                hapusBarangDariKeranjang(
+                                                    idProduk);
+                                              } else {
+                                                // Handle jika konversi gagal
+                                                print(
+                                                    'Error: ID produk tidak valid');
+                                              }
                                             },
                                           ),
                                         ],
@@ -363,12 +324,19 @@ class _KeranjangPageState extends State<KeranjangPage> {
                               style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(vertical: 15),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(28),
+                                  borderRadius: BorderRadius.circular(15),
                                 ),
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.green,
+                                backgroundColor:
+                                    Color.fromARGB(255, 85, 185, 30),
                               ),
-                              child: Text('Buat Pesanan'),
+                              child: Text(
+                                'Buat Pesanan',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -376,13 +344,30 @@ class _KeranjangPageState extends State<KeranjangPage> {
                     ),
                   ],
                 )
-          : Container(), // Do not display anything if not authenticated
+          : Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  backgroundColor: Color.fromARGB(255, 85, 185, 30),
+                ),
+                child: Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: KeranjangPage(),
-  ));
 }

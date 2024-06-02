@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:partani_mobile/components/component%20pembeli/bottombar_pembeli.dart';
+import 'package:partani_mobile/user_login/login.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,12 +16,31 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
   late String token;
   bool isPesananDibatalkan = false;
 
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> initializeTokenAndRole(BuildContext context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      token = prefs.getString('token') ?? '';
+      if (token.isEmpty) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
+    });
+  }
+
   Future<void> fetchData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/pembeli'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/pembeli'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -45,7 +66,7 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
     String token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/batalkan/$idPesanan'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/batalkan/$idPesanan'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.put(
         Uri.parse(apiUrl),
@@ -172,11 +193,11 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    fetchData();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   fetchData();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -220,12 +241,29 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
                             onTap: () {
                               _showPesananDetail(pesanan);
                             },
-                            leading: Image.asset(
-                              'assets/images/image.jpeg',
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            ),
+                            leading: pesanan['gambar'] != null
+                                ? FadeInImage.assetNetwork(
+                                    placeholder: 'assets/images/dummy.png',
+                                    image: pesanan['gambar'],
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    imageErrorBuilder:
+                                        (context, error, stackTrace) {
+                                      return Image.asset(
+                                        'assets/images/dummy.png',
+                                        width: 50,
+                                        height: 50,
+                                        fit: BoxFit.cover,
+                                      );
+                                    },
+                                  )
+                                : Image.asset(
+                                    'assets/images/dummy.png',
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
                             title: Text(pesanan['nama_produk'] ?? ''),
                             subtitle: Text(
                                 '\n Total Harga: Rp. ${pesanan['total_harga']}\n'
@@ -298,6 +336,7 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
                 );
               },
             ),
+      bottomNavigationBar: BottombarPembeli(), // Tambahkan navbar di sini
     );
   }
 

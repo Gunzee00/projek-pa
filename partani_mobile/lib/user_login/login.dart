@@ -27,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/user/login'),
+        Uri.parse('https://projek.cloud/api/user/login'),
         body: jsonEncode({'username': username, 'password': password}),
         headers: {'Content-Type': 'application/json'},
       );
@@ -41,8 +41,8 @@ class _LoginPageState extends State<LoginPage> {
             responseData['token'] != null) {
           String role = responseData['data']['role'];
           String token = responseData['token'];
-          // Simpan token ke shared preferences
-          await saveToken(token);
+          // Simpan token dan peran ke shared preferences
+          await saveTokenAndRole(token, role);
           // Redirect sesuai role
           if (role == 'pembeli') {
             Navigator.of(context).pushReplacement(
@@ -68,10 +68,11 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Fungsi untuk menyimpan token ke shared preferences
-  Future<void> saveToken(String token) async {
+// Fungsi untuk menyimpan token dan peran ke shared preferences
+  Future<void> saveTokenAndRole(String token, String role) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
+    await prefs.setString('role', role);
   }
 
   void _showErrorDialog(String message) {

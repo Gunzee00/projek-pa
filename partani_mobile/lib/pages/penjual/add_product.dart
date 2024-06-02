@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:partani_mobile/pages/penjual/manage_product.dart';
+import 'package:partani_mobile/user_login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AddProductPage extends StatefulWidget {
@@ -35,6 +36,25 @@ class _AddProductPageState extends State<AddProductPage> {
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+    initializeTokenAndRole();
+  }
+
+  Future<void> initializeTokenAndRole() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    String? role = prefs.getString('role');
+
+    if (role != 'penjual') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+    }
+  }
+
   Future<void> _addProduct(String token) async {
     String name = _nameController.text.trim();
     String price = _priceController.text.trim();
@@ -59,7 +79,7 @@ class _AddProductPageState extends State<AddProductPage> {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.0.2.2:8000/api/create-produk'),
+        Uri.parse('https://projek.cloud/api/create-produk'),
       );
 
       request.headers['Authorization'] = 'Bearer $token';

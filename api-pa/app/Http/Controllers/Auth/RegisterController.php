@@ -77,32 +77,63 @@ class RegisterController extends Controller
 
     public function registerApi(Request $request)
     {
-        // Validasi input
-        $request->validate([
-            'nama_lengkap' => 'required|string',
-            'username' => 'required|string|unique:users',
-            'nomor_telepon' => 'required|string|unique:users',
-            'alamat' => 'required|string',
-            'password' => 'required|string|min:8',
-        ]);
-
-        // Buat user baru
-        $user = new User();
-        $user->nama_lengkap = $request->input('nama_lengkap');
-        $user->username = $request->input('username');
-        $user->nomor_telepon = $request->input('nomor_telepon');
-        $user->alamat = $request->input('alamat');
-        $user->role = $request->input('role');
-        $user->password = bcrypt($request->input('password')); // Menggunakan bcrypt untuk hashing password
-
-        // Set default akses
-        // $user->role = 'pembeli';
-
-        
-
-        // Simpan user ke database
-        $user->save();
-
-        return response()->json(['message' => 'Registrasi berhasil', 'user' => $user], 201);
+        try {
+            // Validasi input
+            $request->validate([
+                'nama_lengkap' => 'required|string',
+                'username' => 'required|string|unique:users',
+                'nomor_telepon' => 'required|string|unique:users',
+                'alamat' => 'required|string',
+                'password' => 'required|string|min:8',
+            ]);
+    
+            // Buat user baru
+            $user = new User();
+            $user->nama_lengkap = $request->input('nama_lengkap');
+            $user->username = $request->input('username');
+            $user->nomor_telepon = $request->input('nomor_telepon');
+            $user->alamat = $request->input('alamat');
+            $user->role = $request->input('role', 'pembeli'); // Default role jika tidak ada input role
+            $user->password = bcrypt($request->input('password')); // Menggunakan bcrypt untuk hashing password
+    
+            // Simpan user ke database
+            $user->save();
+    
+            return response()->json(['message' => 'Registrasi berhasil', 'user' => $user], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Tangani kesalahan validasi khusus
+            $errors = $e->validator->errors();
+            $response = [];
+    
+            if ($errors->has('username')) {
+                $response['username'] = 'Username telah digunakan';
+            }
+            if ($errors->has('nomor_telepon')) {
+                $response['nomor_telepon'] = 'Nomor telepon telah digunakan';
+            }
+    
+            return response()->json(['errors' => $response], 422);
+        } catch (\Exception $e) {
+            // Tangani kesalahan umum
+            return response()->json(['message' => 'Terjadi kesalahan saat registrasi.'], 500);
+        }
     }
+    
+    public function checkUnique(Request $request)
+    {
+        $request->validate([
+            'field' => 'required|string|in:username,nomor_telepon',
+            'value' => 'required|string',
+        ]);
+    
+        $field = $request->input('field');
+        $value = $request->input('value');
+    
+        $exists = User::where($field, $value)->exists();
+    
+        return response()->json(['is_unique' => !$exists]);
+    }
+    
+    
+
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:partani_mobile/user_login/login.dart';
 
 class RegisterPembeliPage extends StatefulWidget {
   @override
@@ -14,9 +15,24 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
   TextEditingController alamatController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  Future<void> registerUser() async {
-    String url = 'http://10.0.2.2:8000/api/user/register';
+  Future<bool> isUnique(String field, String value) async {
+    String url = 'https://projek.cloud/api/user/check_unique';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8'
+      },
+      body: jsonEncode(<String, String>{
+        'field': field,
+        'value': value,
+      }),
+    );
 
+    final responseData = json.decode(response.body);
+    return responseData['is_unique'];
+  }
+
+  Future<void> registerUser() async {
     if (usernameController.text.isEmpty ||
         namaController.text.isEmpty ||
         teleponController.text.isEmpty ||
@@ -27,7 +43,7 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Error'),
-            content: Text('Harap isi semua bidang.'),
+            content: Text('Harap mengisi semua form'),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -40,6 +56,51 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
       return;
     }
 
+    bool isUsernameUnique = await isUnique('username', usernameController.text);
+    bool isTeleponUnique =
+        await isUnique('nomor_telepon', teleponController.text);
+
+    if (!isUsernameUnique) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text(
+                'Username sudah digunakan, silakan gunakan username lain.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    if (!isTeleponUnique) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text(
+                'Nomor telepon sudah digunakan, silakan gunakan nomor lain.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    String url = 'https://projek.cloud/api/user/register';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -62,12 +123,16 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Berhasil'),
+              title: Text('Success'),
               content: Text(responseData['message']),
               actions: <Widget>[
                 TextButton(
                   onPressed: () {
-                    Navigator.popUntil(context, ModalRoute.withName('/'));
+                    Navigator.pop(context); // Close the dialog
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
                   },
                   child: Text('OK'),
                 ),
@@ -80,7 +145,7 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Gagal'),
+              title: Text('Error'),
               content: Text(responseData['message']),
               actions: <Widget>[
                 TextButton(
@@ -101,7 +166,7 @@ class _RegisterPembeliPageState extends State<RegisterPembeliPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Registrasi Pembeli'),
+        title: Text('Registrasi Penjual'),
       ),
       body: SingleChildScrollView(
         child: Padding(

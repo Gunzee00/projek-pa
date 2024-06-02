@@ -6,7 +6,6 @@ import 'package:partani_mobile/pages/pembeli/keranjang_page.dart';
 import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
 import 'package:partani_mobile/pages/pembeli/riwayat_pesananpembeli.dart';
 import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
-
 import 'package:partani_mobile/pages/pembeli/product_detail.dart';
 import 'package:partani_mobile/user_login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,10 +18,11 @@ class PembeliPage extends StatefulWidget {
 class _PembeliPageState extends State<PembeliPage> {
   List<dynamic> products = [];
   TextEditingController searchController = TextEditingController();
-  late String token = ''; // Inisialisasi token
+  late String token = '';
+  late String role = '';
 
   Future<void> fetchProducts({String query = ''}) async {
-    String apiUrl = 'http://10.0.2.2:8000/api/produk/all';
+    String apiUrl = 'https://projek.cloud/api/produk/all';
     if (query.isNotEmpty) {
       apiUrl += '?q=$query';
     }
@@ -38,10 +38,17 @@ class _PembeliPageState extends State<PembeliPage> {
   }
 
   // Fungsi untuk menginisialisasi token dari SharedPreferences
-  Future<void> initializeToken() async {
+  Future<void> initializeTokenAndRole() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token') ?? '';
+      role = prefs.getString('role') ?? '';
+      if (role != 'pembeli') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
     });
   }
 
@@ -52,7 +59,7 @@ class _PembeliPageState extends State<PembeliPage> {
 
     if (token.isNotEmpty) {
       // Tambahkan pengecekan token sebelum logout
-      String apiUrl = 'http://10.0.2.2:8000/api/user/logout';
+      String apiUrl = 'https://projek.cloud/api/user/logout';
       Map<String, String> headers = {
         'Authorization': 'Bearer $token',
       };
@@ -116,16 +123,18 @@ class _PembeliPageState extends State<PembeliPage> {
       );
     } else {
       // Jika token tidak kosong, tambahkan produk ke keranjang
-      String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
+      String apiUrl = 'https://projek.cloud/api/keranjang/tambah-keranjang';
       Map<String, dynamic> body = {
-        'id_produk': idProduk.toString(), // Ensure id_produk is a string
-        'jumlah': jumlah,
+        'id_produk': idProduk.toInt(), // Ensure id_produk is a string
+        'jumlah': jumlah.toInt(), // Ensure jumlah is a string
       };
+      print(body);
       print(
           'id_produk: $idProduk'); // Tambahkan log untuk memeriksa tipe dan nilai id_produk
       Map<String, String> headers = {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       };
 
       try {
@@ -134,11 +143,13 @@ class _PembeliPageState extends State<PembeliPage> {
           headers: headers,
           body: json.encode(body),
         );
+        print(json.encode(body));
 
         if (response.statusCode == 201) {
           _showSnackbar('Produk berhasil ditambahkan ke keranjang.');
         } else {
-          _showSnackbar('Gagal menambahkan produk ke keranjang.');
+          print(response.statusCode);
+          // _showSnackbar('Gagal menambahkan produk ke keranjang.');
         }
       } catch (e) {
         _showSnackbar('Terjadi kesalahan: $e');
@@ -173,8 +184,8 @@ class _PembeliPageState extends State<PembeliPage> {
   @override
   void initState() {
     super.initState();
+    initializeTokenAndRole(); // Panggil fungsi untuk menginisialisasi token dan peran
     fetchProducts();
-    initializeToken(); // Panggil fungsi untuk menginisialisasi token
   }
 
   @override
@@ -183,7 +194,7 @@ class _PembeliPageState extends State<PembeliPage> {
       appBar: AppBar(
         title: Text('Partani'),
         actions: [
-          if (token.isNotEmpty) // Check if the user is authenticated
+          if (token.isNotEmpty)
             IconButton(
               icon: Icon(Icons.logout),
               onPressed: () {
@@ -246,10 +257,24 @@ class _PembeliPageState extends State<PembeliPage> {
                             children: [
                               Expanded(
                                 child: Center(
-                                  child: Image.asset(
-                                    'assets/images/image.jpeg',
-                                    fit: BoxFit.cover,
-                                  ),
+                                  child: products[index]['gambar'] != null
+                                      ? FadeInImage.assetNetwork(
+                                          placeholder:
+                                              'assets/images/dummy.png',
+                                          image: products[index]['gambar'],
+                                          fit: BoxFit.cover,
+                                          imageErrorBuilder:
+                                              (context, error, stackTrace) {
+                                            return Image.asset(
+                                              'assets/images/dummy.png',
+                                              fit: BoxFit.cover,
+                                            );
+                                          },
+                                        )
+                                      : Image.asset(
+                                          'assets/images/dummy.png',
+                                          fit: BoxFit.cover,
+                                        ),
                                 ),
                               ),
                               Padding(
@@ -300,12 +325,23 @@ class _PembeliPageState extends State<PembeliPage> {
                                 size: 24,
                               ),
                               onPressed: () async {
-                                int jumlah =
-                                    products[index]['minimal_pemesanan'];
+                                // Menampilkan nilai 'minimal_pesanan' sebelum di-parse
+
+                                print(
+                                    "Minimal pesanan: ${products[index]['minimal_pemesanan']}");
+                                print(products[index]);
+
+                                int jumlah = int.tryParse(products[index]
+                                            ['minimal_pemesanan']
+                                        .toString()) ??
+                                    0;
+
                                 SharedPreferences prefs =
                                     await SharedPreferences.getInstance();
                                 String token = prefs.getString('token') ?? '';
+
                                 if (token.isEmpty) {
+                                  // Tampilkan dialog untuk login jika token kosong
                                   showDialog(
                                     context: context,
                                     builder: (BuildContext context) {
@@ -337,10 +373,29 @@ class _PembeliPageState extends State<PembeliPage> {
                                     },
                                   );
                                 } else {
-                                  tambahProdukKeKeranjang(
-                                    products[index]['id_produk'],
-                                    jumlah,
-                                  );
+                                  // Mengonversi nilai 'id_produk' menjadi integer menggunakan int.tryParse()
+                                  int? idProduk = int.tryParse(
+                                      products[index]['id_produk'].toString());
+
+                                  // Melakukan pengecekan apakah konversi berhasil dan jumlah lebih besar dari nol
+                                  if (idProduk != null && jumlah > 0) {
+                                    // Panggil fungsi untuk menambahkan produk ke keranjang
+                                    tambahProdukKeKeranjang(idProduk, jumlah);
+                                  } else {
+                                    // Tangani kasus di mana nilai 'id_produk' tidak valid atau jumlah <= 0
+                                    String errorMessage = '';
+                                    if (idProduk == null) {
+                                      errorMessage +=
+                                          'Error: Nilai id_produk tidak valid.\n';
+                                    }
+                                    if (jumlah <= 0) {
+                                      errorMessage +=
+                                          'Error: Nilai jumlah harus lebih besar dari 0.\n';
+                                    }
+                                    print(errorMessage);
+                                    _showSnackbar(
+                                        'Terjadi kesalahan saat menambahkan produk ke keranjang.');
+                                  }
                                 }
                               },
                             ),

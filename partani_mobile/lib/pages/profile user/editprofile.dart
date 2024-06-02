@@ -25,7 +25,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String authToken = prefs.getString('token') ?? '';
 
-    final url = Uri.parse('http://10.0.2.2:8000/api/user/profile');
+    final url = Uri.parse('https://projek.cloud/api/user/profile');
     final response = await http.get(
       url,
       headers: <String, String>{
@@ -48,7 +48,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String authToken = prefs.getString('token') ?? '';
 
-    final url = Uri.parse('http://10.0.2.2:8000/api/user/update');
+    final url = Uri.parse('https://projek.cloud/api/user/update');
     final response = await http.put(
       url,
       headers: <String, String>{

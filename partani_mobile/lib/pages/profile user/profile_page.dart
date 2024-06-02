@@ -67,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return; // Menghentikan eksekusi lebih lanjut jika token kosong
     }
 
-    final url = Uri.parse('http://10.0.2.2:8000/api/user/profile');
+    final url = Uri.parse('https://projek.cloud/api/user/profile');
     final response = await http.get(
       url,
       headers: <String, String>{
@@ -90,7 +90,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         title: Text('Profil'),
       ),
-      bottomNavigationBar: BottombarPenjual(),
+      // bottomNavigationBar: BottombarPenjual(),
       body: isAuthenticated
           ? userInfo != null
               ? SingleChildScrollView(
@@ -100,7 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       SizedBox(height: 20),
                       CircleAvatar(
                         radius: 50,
-                        backgroundImage: AssetImage('assets/images/image.jpeg'),
+                        backgroundImage: AssetImage('assets/images/person.png'),
                       ),
                       SizedBox(height: 20),
                       Padding(

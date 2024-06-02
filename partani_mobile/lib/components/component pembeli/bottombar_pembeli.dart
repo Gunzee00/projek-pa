@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:partani_mobile/pages/pembeli/keranjang_page.dart';
+import 'package:partani_mobile/pages/pembeli/pembeli_page.dart';
 import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
 import 'package:partani_mobile/pages/pembeli/riwayat_pesananpembeli.dart';
 import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
@@ -19,7 +20,12 @@ class BottombarPembeli extends StatelessWidget {
                 color: Colors.white,
               ),
               iconSize: 30,
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => PembeliPage()),
+                );
+              },
             ),
             IconButton(
               icon: Icon(

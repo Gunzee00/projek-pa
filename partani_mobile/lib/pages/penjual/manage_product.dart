@@ -4,10 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:partani_mobile/components/component%20penjual/bottombar_penjual.dart';
 import 'package:partani_mobile/pages/penjual/add_product.dart';
 import 'package:partani_mobile/pages/penjual/edit_product.dart';
-// import 'package:partani_mobile/pages/penjual/pesanan_page.dart';
-// import 'package:partani_mobile/pages/profile%20user/profile_page.dart';
-// import 'package:partani_mobile/pages/penjual/penjual_page.dart'; // Import PenjualPage
-// import 'package:partani_mobile/user_login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageProductPage extends StatefulWidget {
@@ -17,7 +13,6 @@ class ManageProductPage extends StatefulWidget {
 
 class _ManageProductPageState extends State<ManageProductPage> {
   List<dynamic> _produks = [];
-  // int _selectedIndex = 1; // Set index for bottom bar
 
   @override
   void initState() {
@@ -30,7 +25,7 @@ class _ManageProductPageState extends State<ManageProductPage> {
     String? token = prefs.getString('token');
     if (token != null) {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/produk'),
+        Uri.parse('https://projek.cloud/api/produk'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -52,17 +47,14 @@ class _ManageProductPageState extends State<ManageProductPage> {
     String? token = prefs.getString('token');
     if (token != null) {
       final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/api/delete-produk/$id'),
+        Uri.parse('https://projek.cloud/api/delete-produk/$id'),
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
       if (response.statusCode == 200) {
-        // Product deleted successfully, perform any necessary actions (e.g., update UI)
-        // For example, you can fetch updated list of products
         _fetchProduks();
       } else {
-        // Handle error, if any
         print('Failed to delete product: ${response.body}');
       }
     } else {
@@ -93,6 +85,27 @@ class _ManageProductPageState extends State<ManageProductPage> {
                       borderRadius: BorderRadius.circular(10.0),
                     ),
                     child: ListTile(
+                      leading: SizedBox(
+                        width: 50,
+                        height: 50,
+                        child: produk['gambar'] != null
+                            ? FadeInImage.assetNetwork(
+                                placeholder: 'assets/images/dummy.png',
+                                image: produk['gambar'],
+                                fit: BoxFit.cover,
+                                imageErrorBuilder:
+                                    (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/dummy.png',
+                                    fit: BoxFit.cover,
+                                  );
+                                },
+                              )
+                            : Image.asset(
+                                'assets/images/dummy.png',
+                                fit: BoxFit.cover,
+                              ),
+                      ),
                       title: Text(produk['nama_produk']),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,10 +155,13 @@ class _ManageProductPageState extends State<ManageProductPage> {
     );
   }
 
-  void _navigateToEditProductPage(BuildContext context, int productId) {
-    Navigator.push(
+  void _navigateToEditProductPage(BuildContext context, int productId) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => EditProductPage(productId)),
     );
+    if (result == true) {
+      _fetchProduks(); // Refresh produk list after successful edit
+    }
   }
 }

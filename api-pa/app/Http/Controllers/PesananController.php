@@ -17,26 +17,37 @@ class PesananController extends Controller
     public function pesananPembeli(Request $request)
     {
         $userId = auth()->id();
-
-        $pesananPembeli = Pesanan::select('id_pesanan','user_id_pembeli','user_id_penjual','status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga', 'penjual','nomor_telepon_penjual','alamat_penjual')
+    
+        $pesananPembeli = Pesanan::select('id_pesanan', 'user_id_pembeli', 'user_id_penjual', 'status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga', 'penjual', 'nomor_telepon_penjual', 'alamat_penjual')
             ->where('user_id_pembeli', $userId)
             ->get();
-
+    
+        // Mengubah path gambar menjadi URL yang dapat diakses
+        foreach ($pesananPembeli as $item) {
+            $item->gambar = asset($item->gambar);
+        }
+    
         return response()->json($pesananPembeli, 200);
     }
+    
 
     //menampilkan pesanan ke penjual
     public function pesananPenjual(Request $request)
     {
         $userId = auth()->id();
-
-        $pesananMasuk = Pesanan::select('id_pesanan','user_id_pembeli','user_id_penjual','status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga', 'pembeli','nomor_telepon_pembeli','alamat_pembeli')
+    
+        $pesananMasuk = Pesanan::select('id_pesanan', 'user_id_pembeli', 'user_id_penjual', 'status', 'jumlah', 'nama_produk', 'satuan', 'harga', 'gambar', 'total_harga', 'pembeli', 'nomor_telepon_pembeli', 'alamat_pembeli')
             ->where('user_id_penjual', $userId)
             ->get();
-
+    
+        // Mengubah path gambar menjadi URL yang dapat diakses
+        foreach ($pesananMasuk as $item) {
+            $item->gambar = asset($item->gambar);
+        }
+    
         return response()->json($pesananMasuk, 200);
     }
-
+    
     // Fungsi untuk membuat pesanan dari keranjang
     public function buatPesananDariKeranjang(Request $request)
 {

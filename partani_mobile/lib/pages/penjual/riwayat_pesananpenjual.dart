@@ -21,7 +21,7 @@ class _RiwayatPesananPenjualPageState extends State<RiwayatPesananPenjualPage> {
     token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/penjual'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/penjual'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.get(
         Uri.parse(apiUrl),
@@ -49,7 +49,7 @@ class _RiwayatPesananPenjualPageState extends State<RiwayatPesananPenjualPage> {
     String token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/konfirmasi/$idPesanan'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/konfirmasi/$idPesanan'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
@@ -74,7 +74,7 @@ class _RiwayatPesananPenjualPageState extends State<RiwayatPesananPenjualPage> {
     String token = prefs.getString('token') ?? '';
 
     String apiUrl =
-        'http://10.0.2.2:8000/api/pesanan/tolak/$idPesanan'; // Sesuaikan dengan URL yang benar
+        'https://projek.cloud/api/pesanan/tolak/$idPesanan'; // Sesuaikan dengan URL yang benar
     try {
       final response = await http.put(
         Uri.parse(apiUrl),
@@ -126,12 +126,28 @@ class _RiwayatPesananPenjualPageState extends State<RiwayatPesananPenjualPage> {
                     onTap: () {
                       _showPesananDetail(pesanan);
                     },
-                    leading: Image.asset(
-                      'assets/images/image.jpeg',
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
+                    leading: pesanan['gambar'] != null
+                        ? FadeInImage.assetNetwork(
+                            placeholder: 'assets/images/dummy.png',
+                            image: pesanan['gambar'],
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                            imageErrorBuilder: (context, error, stackTrace) {
+                              return Image.asset(
+                                'assets/images/dummy.png',
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              );
+                            },
+                          )
+                        : Image.asset(
+                            'assets/images/dummy.png',
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          ),
                     title: Text(pesanan['nama_produk'] ?? ''),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

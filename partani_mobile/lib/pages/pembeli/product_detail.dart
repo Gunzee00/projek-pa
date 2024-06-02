@@ -1,61 +1,167 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:partani_mobile/pages/pembeli/pesananpembeli_page.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-// import 'package:flutter/url_launcher.dart';
+import 'package:partani_mobile/user_login/login.dart';
 
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends StatefulWidget {
   final dynamic product;
-  TextEditingController searchController = TextEditingController();
-  late String token;
 
   ProductDetailPage({required this.product});
 
-  Future<void> tambahProdukKeKeranjang(
-      BuildContext context, int idProduk, int jumlah) async {
+  @override
+  _ProductDetailPageState createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  late TextEditingController searchController;
+  late String token;
+
+  @override
+  void initState() {
+    super.initState();
+    searchController = TextEditingController();
+    token = '';
+  }
+
+  Future<void> buatPesananLangsung(int idProduk, int jumlah) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     token = prefs.getString('token') ?? '';
-    String apiUrl = 'http://10.0.2.2:8000/api/keranjang/tambah-keranjang';
-    Map<String, dynamic> body = {
-      'id_produk': idProduk.toString(), // Ensure id_produk is a string
-      'jumlah': jumlah.toString(), // Ensure jumlah is a string
-    };
-    print(
-        'id_produk: $idProduk'); // Add log to check type and value of id_produk
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: json.encode(body),
+    if (token.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Peringatan"),
+            content: Text("Kamu harus melakukan autentikasi dahulu."),
+            actions: <Widget>[
+              TextButton(
+                child: Text("Login"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
+              ),
+              TextButton(
+                child: Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
       );
+    } else {
+      String apiUrl = 'https://projek.cloud/api/pesanan/buat-pesanan-langsung';
+      Map<String, dynamic> body = {
+        'id_produk': idProduk,
+        'jumlah': jumlah,
+      };
 
-      if (response.statusCode == 201) {
-        // Produk berhasil ditambahkan ke keranjang
-        print('Produk berhasil ditambahkan ke keranjang.');
-        _showSnackbar(context, 'Produk berhasil ditambahkan ke keranjang.');
-      } else {
-        // Gagal menambahkan produk ke keranjang
-        print('Gagal menambahkan produk ke keranjang.');
-        print('Error: ${response.body}');
-        _showSnackbar(context, 'Gagal menambahkan produk ke keranjang.');
+      Map<String, String> headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+      try {
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: headers,
+          body: json.encode(body),
+        );
+
+        if (response.statusCode == 201) {
+          _showSnackbar('Pesanan berhasil dibuat.');
+        } else {
+          print(response.statusCode);
+          _showSnackbar('Gagal membuat pesanan.');
+        }
+      } catch (e) {
+        _showSnackbar('Terjadi kesalahan: $e');
       }
-    } catch (e) {
-      print('Error: $e');
-      _showSnackbar(context, 'Terjadi kesalahan: $e');
     }
   }
 
-  void _showSnackbar(BuildContext context, String message) {
+  Future<void> tambahProdukKeKeranjang(int idProduk, int jumlah) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    token = prefs.getString('token') ?? '';
+
+    if (token.isEmpty) {
+      // Jika token kosong, tampilkan popup untuk autentikasi
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Peringatan"),
+            content: Text("Kamu harus melakukan autentikasi dahulu."),
+            actions: <Widget>[
+              // Tombol untuk pergi ke halaman login
+              TextButton(
+                child: Text("Login"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                },
+              ),
+              // Tombol untuk menutup popup
+              TextButton(
+                child: Text("Close"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Jika token tidak kosong, tambahkan produk ke keranjang
+      String apiUrl = 'https://projek.cloud/api/keranjang/tambah-keranjang';
+      Map<String, dynamic> body = {
+        'id_produk': idProduk.toInt(), // Ensure id_produk is a string
+        'jumlah': jumlah.toInt(), // Ensure jumlah is a string
+      };
+      print(body);
+      print(
+          'id_produk: $idProduk'); // Tambahkan log untuk memeriksa tipe dan nilai id_produk
+      Map<String, String> headers = {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      };
+
+      try {
+        final response = await http.post(
+          Uri.parse(apiUrl),
+          headers: headers,
+          body: json.encode(body),
+        );
+        print(json.encode(body));
+
+        if (response.statusCode == 201) {
+          _showSnackbar('Produk berhasil ditambahkan ke keranjang.');
+        } else {
+          print(response.statusCode);
+          // _showSnackbar('Gagal menambahkan produk ke keranjang.');
+        }
+      } catch (e) {
+        _showSnackbar('Terjadi kesalahan: $e');
+      }
+    }
+  }
+
+  void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -64,58 +170,9 @@ class ProductDetailPage extends StatelessWidget {
     );
   }
 
-  Future<void> pesanProduk(
-      int idProduk, int jumlah, BuildContext context) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    token = prefs.getString('token') ?? '';
-    String apiUrl = 'http://10.0.2.2:8000/api/pesanan/buat-pesanan-langsung';
-    Map<String, dynamic> body = {
-      'id_produk': idProduk.toString(), // Ensure id_produk is a string
-      'jumlah': jumlah.toString(), // Ensure jumlah is a string
-    };
-    print(
-        'id_produk: $idProduk'); // Add log to check type and value of id_produk
-    Map<String, String> headers = {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
-
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: headers,
-        body: json.encode(body),
-      );
-
-      if (response.statusCode == 201) {
-        // Pesanan berhasil dilakukan
-        print('Berhasil melakukan pemesanan');
-        _showSnackbar(context, 'Pesanan berhasil dilakukan.');
-
-        // Delay 2 detik sebelum berpindah ke halaman PesananPembeliPage
-        Future.delayed(Duration(seconds: 2), () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => PesananPembeliPage()),
-          );
-        });
-      } else {
-        // Gagal melakukan pemesanan
-        print('Gagal melakukan pemesanan');
-        // Menampilkan pesan error dari response server
-        print('Error: ${response.body}');
-        _showSnackbar(context, 'Gagal melakukan pemesanan.');
-      }
-    } catch (e) {
-      // Error ketika melakukan request
-      print('Error: $e');
-      _showSnackbar(context, 'Terjadi kesalahan: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    String phoneNumber = product['nomor_penjual'];
+    String phoneNumber = widget.product['nomor_penjual'];
     final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
 
     return Scaffold(
@@ -124,23 +181,33 @@ class ProductDetailPage extends StatelessWidget {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.symmetric(
-              vertical: 5,
-              horizontal: 2), // Atur jarak atas-bawah dan kiri-kanan
+          padding: EdgeInsets.symmetric(vertical: 5, horizontal: 2),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
                 height: 300,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10), // Radius bingkai
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/image.jpeg'),
-                    fit: BoxFit.cover,
-                  ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: widget.product['gambar'] != null
+                    ? FadeInImage.assetNetwork(
+                        placeholder: 'assets/images/dummy.png',
+                        image: widget.product['gambar'],
+                        fit: BoxFit.cover,
+                        imageErrorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/images/dummy.png',
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      )
+                    : Image.asset(
+                        'assets/images/dummy.png',
+                        fit: BoxFit.cover,
+                      ),
               ),
-              SizedBox(height: 20), // Spasi antara gambar dan deskripsi produk
+              SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -150,16 +217,11 @@ class ProductDetailPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Container untuk harga produk
-                        Container(
-                          child: Text(
-                            'Rp.${product['harga']}/${product['satuan']}',
-                            style: TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.bold),
-                          ),
+                        Text(
+                          'Rp.${widget.product['harga']}/${widget.product['satuan']}',
+                          style: TextStyle(
+                              fontSize: 22, fontWeight: FontWeight.bold),
                         ),
-                        // Widget untuk logo WhatsApp
-
                         GestureDetector(
                           onTap: () async {
                             launchUrl(whatsApp);
@@ -168,87 +230,44 @@ class ProductDetailPage extends StatelessWidget {
                             padding: EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors
-                                  .green, // Warna latar belakang ikon WhatsApp
+                              color: Colors.green,
                             ),
                             child: Icon(
-                              Icons.chat, // Ikon WhatsApp
-                              color: Colors.white, // Warna ikon WhatsApp
-                              size: 30, // Ukuran ikon WhatsApp
+                              Icons.chat,
+                              color: Colors.white,
+                              size: 30,
                             ),
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: 10),
-                    Container(
-                      // Container untuk informasi dasar produk
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product['nama_produk'],
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Lokasi: ${product['lokasi_produk']}',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Minimal Pemesanan: ${product['minimal_pemesanan']} ${product['satuan']}',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            'Stok: ${product['stok']}',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
+                    Text(
+                      widget.product['nama_produk'],
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    // Container(
-                    //   decoration: BoxDecoration(
-                    //     borderRadius:
-                    //         BorderRadius.circular(10), // Menambahkan radius
-                    //     color: Colors.grey[200], // Memberi warna latar belakang
-                    //   ),
-                    //   padding: EdgeInsets.all(
-                    //       10), // Memberi padding agar konten tidak terlalu dekat dengan tepi
-                    //   child: SizedBox(
-                    //     width: double.infinity, // Menggunakan lebar maksimal
-                    //     child: Row(
-                    //       children: [
-                    //         Icon(
-                    //           Icons.person,
-                    //           color: Color.fromARGB(
-                    //               255, 73, 73, 73), // Warna ikon person
-                    //         ),
-                    //         SizedBox(
-                    //             width:
-                    //                 10), // Memberi jarak antara ikon dan teks
-                    //         Text(
-                    //           '${product['nama_penjual']}',
-                    //           style: TextStyle(
-                    //             fontSize: 18,
-                    //             fontWeight: FontWeight.bold,
-                    //           ),
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    // ),
-
+                    SizedBox(height: 5),
+                    Text(
+                      'Lokasi: ${widget.product['lokasi_produk']}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Minimal Pemesanan: ${widget.product['minimal_pemesanan']} ${widget.product['satuan']}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      'Stok: ${widget.product['stok']}',
+                      style: TextStyle(fontSize: 16),
+                    ),
                     SizedBox(height: 10),
-                    // Container untuk deskripsi produk
                     Card(
                       shape: RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(10), // Radius bingkai
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      elevation: 3, // Atur elevasi kartu sesuai keinginan
+                      elevation: 3,
                       child: Container(
                         padding: EdgeInsets.all(16),
                         child: Column(
@@ -261,7 +280,7 @@ class ProductDetailPage extends StatelessWidget {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              product['deskripsi'],
+                              widget.product['deskripsi'],
                               style: TextStyle(fontSize: 16),
                             ),
                           ],
@@ -277,8 +296,7 @@ class ProductDetailPage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: Color.fromARGB(
-            255, 255, 255, 255), // Atur warna background menjadi putih
+        color: Colors.white,
         child: Container(
           height: 60,
           padding: EdgeInsets.symmetric(horizontal: 16),
@@ -286,29 +304,139 @@ class ProductDetailPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ElevatedButton(
-                onPressed: () {
-                  int jumlah = product['minimal_pemesanan'];
-                  print('Jumlah: $jumlah');
-                  pesanProduk(
-                      product['id_produk'], jumlah, context // Tambahkan context
-                      );
+                onPressed: () async {
+                  print(widget.product[widget.product]);
+
+                  int jumlah = int.tryParse(
+                          widget.product['minimal_pemesanan'].toString()) ??
+                      0;
+
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  String token = prefs.getString('token') ?? '';
+
+                  if (token.isEmpty) {
+                    // Show login dialog if token is empty
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Peringatan"),
+                          content:
+                              Text("Kamu harus melakukan autentikasi dahulu."),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text("Login"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginPage()),
+                                );
+                              },
+                            ),
+                            TextButton(
+                              child: Text("Close"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else {
+                    int? idProduk =
+                        int.tryParse(widget.product['id_produk'].toString());
+
+                    if (idProduk != null && jumlah > 0) {
+                      buatPesananLangsung(idProduk, jumlah);
+                    } else {
+                      String errorMessage = '';
+                      if (idProduk == null) {
+                        errorMessage += 'Error: Nilai id_produk tidak valid.\n';
+                      }
+                      if (jumlah <= 0) {
+                        errorMessage +=
+                            'Error: Nilai jumlah harus lebih besar dari 0.\n';
+                      }
+                      print(errorMessage);
+                      _showSnackbar(
+                          'Terjadi kesalahan saat melakukan pemesanan langsung.');
+                    }
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Color(0xFF64AA54),
                   backgroundColor: Colors.white,
                   side: BorderSide(color: Color(0xFF64AA54)),
                 ),
-                child: Text('Beli Langsung'),
+                child: Text('Pesan Langsung'),
               ),
               ElevatedButton(
-                onPressed: () {
-                  int jumlah = product['minimal_pemesanan'];
-                  print('Jumlah: $jumlah');
-                  tambahProdukKeKeranjang(
-                    context,
-                    product['id_produk'],
-                    jumlah,
-                  );
+                onPressed: () async {
+                  print(widget.product[widget.product]);
+
+                  int jumlah = int.tryParse(
+                          widget.product['minimal_pemesanan'].toString()) ??
+                      0;
+
+                  SharedPreferences prefs =
+                      await SharedPreferences.getInstance();
+                  String token = prefs.getString('token') ?? '';
+
+                  if (token.isEmpty) {
+                    // Show login dialog if token is empty
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Peringatan"),
+                          content:
+                              Text("Kamu harus melakukan autentikasi dahulu."),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text("Login"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LoginPage()),
+                                );
+                              },
+                            ),
+                            TextButton(
+                              child: Text("Close"),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else {
+                    int? idProduk =
+                        int.tryParse(widget.product['id_produk'].toString());
+
+                    if (idProduk != null && jumlah > 0) {
+                      tambahProdukKeKeranjang(idProduk, jumlah);
+                    } else {
+                      String errorMessage = '';
+                      if (idProduk == null) {
+                        errorMessage += 'Error: Nilai id_produk tidak valid.\n';
+                      }
+                      if (jumlah <= 0) {
+                        errorMessage +=
+                            'Error: Nilai jumlah harus lebih besar dari 0.\n';
+                      }
+                      print(errorMessage);
+                      _showSnackbar(
+                          'Terjadi kesalahan saat menambahkan produk ke keranjang.');
+                    }
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF64AA54),
@@ -325,5 +453,11 @@ class ProductDetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 }

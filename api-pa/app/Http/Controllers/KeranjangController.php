@@ -16,16 +16,18 @@ public function index()
 {
     $userId = auth()->user()->id;
     $keranjang = Keranjang::where('user_id', $userId)
-                    ->select('id_produk', 'nama_produk', 'jumlah', 'satuan', 'total_harga','penjual')
+                    ->select('id_produk', 'nama_produk', 'gambar', 'jumlah', 'satuan', 'total_harga', 'penjual')
                     ->get();
 
     if ($keranjang->isEmpty()) {
         return response()->json(['message' => 'Isi keranjang kosong.'], 404);
     }
+    foreach ($keranjang as $item) {
+        $item->gambar = asset($item->gambar); // Mengubah path gambar menjadi URL yang dapat diakses
+    }
 
     return response()->json($keranjang, 200);
 }
-
  
          //tambahkan keranjang
          public function tambahKeranjang(Request $request)
@@ -94,35 +96,44 @@ public function index()
              return response()->json(['message' => 'Produk berhasil ditambahkan ke keranjang.'], 201);
          }
 
-public function updateJumlahKeranjang(Request $request)
+         public function updateKeranjang(Request $request, $id_produk)
 {
     // Validasi request
     $request->validate([
-        'id_keranjang' => 'required|exists:keranjang,id',
         'jumlah' => 'required|integer|min:1',
     ]);
 
-    // Mendapatkan data dari request
-    $keranjangId = $request->id_keranjang;
-    $jumlah = $request->jumlah;
+    // Mendapatkan jumlah baru dari request
+    $jumlahBaru = $request->jumlah;
 
-    // Mendapatkan keranjang berdasarkan ID
-    $keranjang = Keranjang::findOrFail($keranjangId);
+    // Mendapatkan ID pengguna yang login menggunakan token
+    $userId = auth()->id();
 
-    // Mendapatkan data produk terkait
-    $produk = Produk::findOrFail($keranjang->id_produk);
+    // Temukan item keranjang berdasarkan user_id dan id_produk
+    $itemKeranjang = Keranjang::where('user_id', $userId)
+                               ->where('id_produk', $id_produk)
+                               ->first();
 
-    // Menghitung total harga berdasarkan harga produk dan jumlah baru
-    $totalHargaBaru = $produk->harga * $jumlah;
+    // Jika item keranjang tidak ditemukan, kembalikan respons 404
+    if (!$itemKeranjang) {
+        return response()->json(['message' => 'Item keranjang tidak ditemukan.'], 404);
+    }
 
-    // Memperbarui jumlah dan total harga dalam keranjang
-    $keranjang->jumlah = $jumlah;
-    $keranjang->total_harga = $totalHargaBaru;
-    $keranjang->save();
+    // Mendapatkan data produk dari database
+    $produk = Produk::findOrFail($id_produk);
 
-    return response()->json(['message' => 'Jumlah keranjang berhasil diperbarui.'], 200);
+    // Memeriksa apakah jumlah baru memenuhi jumlah minimal pemesanan
+    if ($jumlahBaru < $produk->minimal_pemesanan) {
+        return response()->json(['message' => 'Jumlah pesanan harus di atas atau sama dengan jumlah minimal pemesanan: ' . $produk->minimal_pemesanan], 400);
+    }
+
+    // Perbarui jumlah dan total harga item keranjang
+    $itemKeranjang->jumlah = $jumlahBaru;
+    $itemKeranjang->total_harga = $produk->harga * $jumlahBaru;
+    $itemKeranjang->save();
+
+    return response()->json(['message' => 'Jumlah produk dalam keranjang berhasil diperbarui.'], 200);
 }
-
 
 
 public function hapusKeranjang(Request $request)
