@@ -55,7 +55,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
      //hapus produk
     Route::delete('/delete-produk/{id}', [ProdukController::class, 'delete']);
     //update produk
-    Route::put('/update-produk/{id}', [ProdukController::class, 'update']);
+        Route::put('/update-produk/{id}', [ProdukController::class, 'update']);
     Route::get('/produk/{id}', [ProdukController::class, 'show']);
 
 

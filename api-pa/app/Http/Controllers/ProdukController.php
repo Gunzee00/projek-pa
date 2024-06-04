@@ -118,62 +118,62 @@ public function store(Request $request)
 
     return response()->json(['message' => 'Produk deleted successfully'], 200);
 }
-public function update(Request $request, $id)
-{
-    // Debugging: Memeriksa semua input
-    \Log::info('Input Data: ', $request->all());
+    public function update(Request $request, $id)
+    {
+        // Debugging: Memeriksa semua input
+        // \Log::info('Input Data: ', $request->all());
 
-    // Temukan produk berdasarkan ID
-    $produk = Produk::find($id);
+        // Temukan produk berdasarkan ID
+        $produk = Produk::find($id);
 
-    // Jika produk tidak ditemukan, kembalikan respons 404
-    if (!$produk) {
-        return response()->json(['message' => 'Produk tidak ditemukan'], 404);
+        // Jika produk tidak ditemukan, kembalikan respons 404
+        if (!$produk) {
+            return response()->json(['message' => 'Produk tidak ditemukan'], 404);
+        }
+
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'nama_produk' => 'required',
+            'harga' => 'required|numeric',
+            'gambar' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // opsional
+            'deskripsi' => 'required',
+            'satuan' => 'required',
+            'lokasi_produk' => 'required',
+            'minimal_pemesanan' => 'required|numeric',
+            'stok' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        // Handle the image upload jika ada
+        if ($request->hasFile('gambar')) {
+            $image = $request->file('gambar');
+            $imageName = uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('images'), $imageName);
+            $imagePath = 'images/' . $imageName; // Format yang diinginkan untuk disimpan di database
+            $produk->gambar = $imagePath;
+        }
+
+        // Update data produk
+        $produk->nama_produk = $request->input('nama_produk');
+        $produk->harga = $request->input('harga');
+        $produk->deskripsi = $request->input('deskripsi');
+        $produk->satuan = $request->input('satuan');
+        $produk->lokasi_produk = $request->input('lokasi_produk');
+        $produk->minimal_pemesanan = $request->input('minimal_pemesanan');
+        $produk->stok = $request->input('stok');
+
+        // Simpan perubahan
+        $produk->save();
+
+        // Mengubah path gambar menjadi URL yang dapat diakses
+        $produk->gambar = asset($produk->gambar);
+
+        // Kembalikan respons dengan detail produk yang diperbarui
+        return response()->json(['message' => 'Produk updated successfully', 'produk' => $produk], 200);
     }
-
-    // Validasi input
-    $validator = Validator::make($request->all(), [
-        'nama_produk' => 'required',
-        'harga' => 'required|numeric',
-        // 'gambar' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // opsional
-        'deskripsi' => 'required',
-        'satuan' => 'required',
-        'lokasi_produk' => 'required',
-        'minimal_pemesanan' => 'required|numeric',
-        'stok' => 'required|numeric',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 400);
-    }
-
-    // Handle the image upload jika ada
-    // if ($request->hasFile('gambar')) {
-    //     $image = $request->file('gambar');
-    //     $imageName = uniqid() . '.' . $image->getClientOriginalExtension();
-    //     $image->move(public_path('images'), $imageName);
-    //     $imagePath = 'images/' . $imageName; // Format yang diinginkan untuk disimpan di database
-    //     $produk->gambar = $imagePath;
-    // }
-
-    // Update data produk
-    $produk->nama_produk = $request->input('nama_produk');
-    $produk->harga = $request->input('harga');
-    $produk->deskripsi = $request->input('deskripsi');
-    $produk->satuan = $request->input('satuan');
-    $produk->lokasi_produk = $request->input('lokasi_produk');
-    $produk->minimal_pemesanan = $request->input('minimal_pemesanan');
-    $produk->stok = $request->input('stok');
-
-    // Simpan perubahan
-    $produk->save();
-
-    // Mengubah path gambar menjadi URL yang dapat diakses
-    // $produk->gambar = asset($produk->gambar);
-
-    // Kembalikan respons dengan detail produk yang diperbarui
-    return response()->json(['message' => 'Produk updated successfully', 'produk' => $produk], 200);
-}
 
 
 public function show($id)

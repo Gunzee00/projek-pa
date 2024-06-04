@@ -68,7 +68,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-// Fungsi untuk menyimpan token dan peran ke shared preferences
+  // Fungsi untuk menyimpan token dan peran ke shared preferences
   Future<void> saveTokenAndRole(String token, String role) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
@@ -99,10 +99,16 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          // title: Text('Login'),
-          ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => PembeliPage()),
+            );
+          },
+        ),
+      ),
       body: SingleChildScrollView(
-        // Tambahkan SingleChildScrollView di sini
         child: Padding(
           padding: EdgeInsets.all(10.0),
           child: Column(

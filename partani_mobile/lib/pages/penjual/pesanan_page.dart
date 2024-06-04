@@ -124,11 +124,25 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
                     onTap: () {
                       _showPesananDetail(pesanan);
                     },
-                    leading: Image.asset(
-                      'assets/images/image.jpeg',
+                    leading: SizedBox(
                       width: 50,
                       height: 50,
-                      fit: BoxFit.cover,
+                      child: pesanan['gambar'] != null
+                          ? FadeInImage.assetNetwork(
+                              placeholder: 'assets/images/dummy.png',
+                              image: pesanan['gambar'],
+                              fit: BoxFit.cover,
+                              imageErrorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/dummy.png',
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              'assets/images/dummy.png',
+                              fit: BoxFit.cover,
+                            ),
                     ),
                     title: Text(pesanan['nama_produk'] ?? ''),
                     subtitle: Column(
@@ -185,7 +199,7 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(flex: 2, child: Text('Nama Pembeli')),
-                    Expanded(flex: 2, child: Text(': ${pesanan['penjual']}')),
+                    Expanded(flex: 2, child: Text(': ${pesanan['pembeli']}')),
                   ],
                 ),
                 Row(
@@ -252,7 +266,8 @@ class _PesananPenjualPageState extends State<PesananPenjualPage> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   String phoneNumber = pesanan['nomor_telepon_pembeli'];
-                  final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+                  final Uri whatsApp =
+                      Uri.parse('https://wa.me/+62$phoneNumber');
                   launchUrl(whatsApp);
                 },
                 icon: Icon(

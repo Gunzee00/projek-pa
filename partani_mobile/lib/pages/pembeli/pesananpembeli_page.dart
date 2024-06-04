@@ -5,6 +5,7 @@ import 'package:partani_mobile/user_login/login.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // Tambahkan ini
 
 class PesananPembeliPage extends StatefulWidget {
   @override
@@ -173,7 +174,7 @@ class _PesananPembeliPageState extends State<PesananPembeliPage> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   String phoneNumber = pesanan['nomor_telepon_penjual'];
-                  final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+                  final Uri whatsApp = Uri.parse('https://wa.me/+62$phoneNumber');
                   launchUrl(whatsApp);
                 },
                 icon: Icon(

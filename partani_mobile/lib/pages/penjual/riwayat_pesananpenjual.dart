@@ -274,7 +274,7 @@ class _RiwayatPesananPenjualPageState extends State<RiwayatPesananPenjualPage> {
               child: ElevatedButton.icon(
                 onPressed: () {
                   String phoneNumber = pesanan['nomor_telepon_pembeli'];
-                  final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+                  final Uri whatsApp = Uri.parse('https://wa.me/+62$phoneNumber');
                   launchUrl(whatsApp);
                 },
                 icon: Icon(

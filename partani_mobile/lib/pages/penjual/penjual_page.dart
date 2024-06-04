@@ -182,7 +182,7 @@ class _PenjualPageState extends State<PenjualPage> {
                 ],
               ),
             ),
-            SizedBox(height: 10.0),
+            SizedBox(height: 20.0),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -196,7 +196,7 @@ class _PenjualPageState extends State<PenjualPage> {
                 iconColor: Color(0xFF64AA54),
               ),
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 20.0),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -210,7 +210,7 @@ class _PenjualPageState extends State<PenjualPage> {
                 iconColor: Color(0xFF64AA54),
               ),
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 20.0),
             InkWell(
               onTap: () {
                 Navigator.push(

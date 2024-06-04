@@ -345,7 +345,8 @@ class _KeranjangPageState extends State<KeranjangPage> {
                   ],
                 )
           : Center(
-              child: ElevatedButton(
+              child: 
+               ElevatedButton(
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
@@ -363,6 +364,7 @@ class _KeranjangPageState extends State<KeranjangPage> {
                   'Login',
                   style: TextStyle(
                     fontSize: 16,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

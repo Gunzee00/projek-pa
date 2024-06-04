@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:partani_mobile/user_login/login.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // Tambahkan ini
 
 class ProductDetailPage extends StatefulWidget {
   final dynamic product;
@@ -173,7 +174,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     String phoneNumber = widget.product['nomor_penjual'];
-    final Uri whatsApp = Uri.parse('https://wa.me/$phoneNumber');
+    final Uri whatsApp = Uri.parse('https://wa.me/+62$phoneNumber');
 
     return Scaffold(
       appBar: AppBar(

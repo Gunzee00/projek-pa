@@ -220,7 +220,7 @@ class _AddProductPageState extends State<AddProductPage> {
             TextFormField(
               controller: _minOrderController,
               decoration: InputDecoration(
-                labelText: 'Minimal Order',
+                labelText: 'Minimal Pemesanan',
                 prefixIcon: Icon(Icons.shopping_cart),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),

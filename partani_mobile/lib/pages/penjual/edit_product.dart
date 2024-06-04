@@ -83,7 +83,7 @@ class _EditProductPageState extends State<EditProductPage> {
       String? token = prefs.getString('token');
       if (token != null) {
         var request = http.MultipartRequest(
-          'POST', // Use POST method for sending multipart form data
+          'PUT', // Use POST method for sending multipart form data
           Uri.parse(
               'https://projek.cloud/api/update-produk/${widget.productId}'),
         );
@@ -98,16 +98,20 @@ class _EditProductPageState extends State<EditProductPage> {
         request.fields['stok'] = _stokController.text;
 
         if (_image != null) {
-          request.files
-              .add(await http.MultipartFile.fromPath('gambar', _image!.path));
+          request.files.add(
+            await http.MultipartFile.fromPath('gambar', _image!.path),
+          );
         } else {
-          request.fields['current_image_url'] = _currentImageUrl!;
+          // If no new image selected, send the current image URL
+          request.fields['gambar'] = _currentImageUrl!;
         }
 
         final response = await request.send();
         if (response.statusCode == 200) {
           Navigator.pop(
-              context, true); // Return to previous screen with success flag
+            context,
+            true,
+          ); // Return to previous screen with success flag
         } else {
           // Handle error, if any
           print('Failed to update product: ${response.reasonPhrase}');
@@ -229,7 +233,7 @@ class _EditProductPageState extends State<EditProductPage> {
                       child: _image == null
                           ? _currentImageUrl != null
                               ? Image.network(
-                                  _currentImageUrl!,
+                                  'https://projek.cloud/' + _currentImageUrl!,
                                   height: 200,
                                   fit: BoxFit.cover,
                                 )
