@@ -168,6 +168,13 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                "Lupa Password?",
+                style: TextStyle(color: Colors.red),
+              ),
               SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: loginUser,

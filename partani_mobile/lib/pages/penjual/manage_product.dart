@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:partani_mobile/components/component%20penjual/bottombar_penjual.dart';
 import 'package:partani_mobile/pages/penjual/add_product.dart';
-import 'package:partani_mobile/pages/penjual/edit_product.dart';
+import 'package:partani_mobile/pages/penjual/edit_product.dart'; // Import halaman edit produk
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ManageProductPage extends StatefulWidget {
@@ -59,6 +61,18 @@ class _ManageProductPageState extends State<ManageProductPage> {
       }
     } else {
       // Token not available, perhaps need authentication process
+    }
+  }
+
+  void _navigateToEditProductPage(BuildContext context, dynamic product) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProductPage(product: product),
+      ),
+    );
+    if (result != null && result == true) {
+      _fetchProduks();
     }
   }
 
@@ -121,8 +135,7 @@ class _ManageProductPageState extends State<ManageProductPage> {
                           IconButton(
                             icon: Icon(Icons.edit),
                             onPressed: () {
-                              _navigateToEditProductPage(
-                                  context, produk['id_produk']);
+                              _navigateToEditProductPage(context, produk);
                             },
                           ),
                           IconButton(
@@ -152,16 +165,10 @@ class _ManageProductPageState extends State<ManageProductPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddProductPage()),
-    );
-  }
-
-  void _navigateToEditProductPage(BuildContext context, int productId) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => EditProductPage(productId)),
-    );
-    if (result == true) {
-      _fetchProduks(); // Refresh produk list after successful edit
-    }
+    ).then((value) {
+      if (value == true) {
+        _fetchProduks();
+      }
+    });
   }
 }
